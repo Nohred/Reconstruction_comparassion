@@ -1,0 +1,19 @@
+tmp/
+__pycache__/
+Captura_sintetica/
+logs/
+
+# Captura real: se sube como referencia, salvo la malla Poisson del colega (137 MB > limite de
+# GitHub de 100 MB; el flujo no la usa)
+Captura_real/*/revision/malla_poisson.ply
+
+# Reconstrucciones: solo la nube final limpia y las metricas (lo intermedio se regenera con run.sh)
+Reconstrucciones/**
+!Reconstrucciones/**/
+!Reconstrucciones/**/resultado_limpio.ply
+!Reconstrucciones/**/evaluacion/metricas.json
+
+# Resultados: solo el informe de evaluacion y la tabla resumen
+Resultados/*
+!Resultados/evaluacion/
+!Resultados/resumen.csv

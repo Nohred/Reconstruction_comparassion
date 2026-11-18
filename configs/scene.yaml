@@ -1,0 +1,58 @@
+# Escena sintetica aproximada (decidido 2026-11-17: RTX tiempo real, escena aproximada).
+render:
+  renderer: RaytracedLighting       # RT2. PathTracing posible, no usado por defecto
+  settle_frames: 60                 # actualizaciones antes de leer un cuadro (acumulacion RT2/TAA)
+  tonemap_op: 4                     # ACES
+  film_iso: 110.0                  # ajustado: papel blanco ~190-200 como en la real
+  whitepoint: 6500.0
+  aa_op: 3                          # TAA
+  clipping_m: [0.01, 10.0]
+  # RTX toma (cx, cy) del esquema OpenCvPinhole con origen en la ESQUINA del pixel; OpenCV usa el
+  # CENTRO. Medido con cornerSubPix en las proyecciones GT: sin correccion, (-0.5, -0.5) px.
+  # Se suma a cx, cy SOLO en el esquema de la lente (K del GT/calib.json no cambia).
+  opencv_pixel_offset_px: 0.5
+
+# Hoja impresa (charuco_carta.pdf, carta horizontal). Medido detectando el ChArUco en el raster
+# de 600 dpi del PDF: la esquina superior izquierda del tablero esta a board_offset_mm de la
+# esquina superior izquierda de la hoja (x a la derecha, y hacia abajo = ejes del tablero).
+board_page:
+  page_size_mm: [279.4, 215.9]
+  board_offset_mm: [19.67, 7.99]
+  texture_px_per_mm: 10
+  texture_file: Resultados/assets/charuco_page.png
+  roughness: 0.7
+  border_bits: 1                    # bits de borde de los marcadores (como generateImage del PDF)
+
+# Base de carton bajo la hoja y mesa (aproximados por foto; no medidos).
+cardboard:
+  enabled: true
+  margin_mm: [12.0, 12.0]           # cuanto sobresale de la hoja en x / y
+  thickness_mm: 3.0
+  color: [0.30, 0.18, 0.09]
+  roughness: 0.9
+table:
+  enabled: true
+  z_below_page_mm: 30.0             # altura de base giratoria + carton bajo la hoja
+  size_m: [1.6, 1.2]
+  color: [0.025, 0.025, 0.03]
+  roughness: 0.5
+
+# Ajustado a ojo con vistas previas lado a lado (media/stop_04): cuarto oscuro, persiana
+# cerrada, luz difusa algo fria (las fotos reales tiran a azul).
+lights:
+  dome_intensity: 350.0
+  dome_color: [0.8, 0.92, 1.0]
+  dome_visible: false               # ilumina pero no se ve: fondo oscuro como el laboratorio
+  key:                              # luz de techo
+    type: distant
+    intensity: 700.0
+    rotate_xyz_deg: [-35.0, 15.0, 0.0]
+    color: [0.85, 0.95, 1.0]
+
+materials:
+  pla_beige:
+    color: [0.78, 0.72, 0.55]
+    roughness: 0.55
+  pla_gris:
+    color: [0.5, 0.5, 0.5]
+    roughness: 0.55

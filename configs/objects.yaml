@@ -1,0 +1,44 @@
+# Objetos simulables. Un objeto es una clave de esta lista o la RUTA a cualquier .usd/.usdz
+# (se le aplican los defaults). La clave es la que escribe capture_turntable.py en
+# session.json["objeto"].
+#
+# Unidades / eje vertical: por defecto los del metadato del USD (metersPerUnit, upAxis).
+# Los USD de Objects/ declaran metersPerUnit=0.01 / upAxis=Y pero su geometria esta en mm con
+# Z arriba (verificado con inspect_usd.py y la nube real del bunny): se corrigen abajo.
+#
+# Tamano: tamano_mm = dimension mayor del bbox en la escena (misma proporcion respecto al
+# tablero que un objeto impreso de ese tamano). escala = factor sobre el tamano real del USD
+# (si se da, manda sobre tamano_mm). Ambos null = tamano real.
+defaults:
+  real_units_m: null          # null -> metersPerUnit del USD
+  up_axis: null               # null -> upAxis del USD (Y o Z)
+  tamano_mm: 170.0            # como el bunny impreso
+  escala: null
+  material: null              # null -> materiales del propio USD (texturas incluidas)
+  placement:                  # colocacion sobre el tablero (decidido 2026-11-17)
+    center_on: turntable_axis # centro XY del bbox del objeto sobre el eje de la base
+    yaw_deg: 0.0
+    bottom_on_board: true     # punto mas bajo apoyado en el plano del tablero
+
+# Material si el USD no trae ninguno (clave de scene.yaml materials)
+material_por_defecto: pla_gris
+
+objects:
+  bunny:
+    usd: Objects/stanford_bunnyx200.usd   # x200 = escala fisica (170x135x170 mm en la nube real)
+    real_units_m: 0.001
+    up_axis: Z
+    tamano_mm: null                       # tamano impreso real
+    material: pla_beige
+  caesar:
+    usd: Objects/Caesar.usd
+    real_units_m: 0.001
+    up_axis: Z
+    tamano_mm: null
+    material: pla_gris
+  artefacto_pi2:
+    usd: Objects/artefacto_metrico_PI2.usd
+    real_units_m: 0.001
+    up_axis: Z
+    tamano_mm: null
+    material: pla_gris

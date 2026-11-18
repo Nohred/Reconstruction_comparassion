@@ -1,0 +1,103 @@
+# Reconstruccion 3D con 4 tecnicas sobre la MISMA entrada (poses e intrinsecos conocidos).
+#   ./run.sh <etapa> <real|sintetica>/<captura>      (./run.sh ayuda)
+# Perfil por defecto "completo"; PERFIL=rapido ./run.sh ... para pruebas cortas.
+# Todas las salidas quedan en el marco del tablero, en metros: Reconstrucciones/<fuente>/<captura>/
+
+entornos:
+  # Checkout de nerfstudio con su entorno pixi (nerfstudio 1.1.5, gsplat 1.4, torch 2.2, open3d).
+  # Variable de entorno NERFSTUDIO_DIR lo sobrescribe.
+  nerfstudio_dir: /home/ccdatos/Escritorio/3D_reconstruction/nerfstudio
+  colmap_env: colmap_cuda          # conda env hermano de twin_cv410 (o COLMAP_BIN=...)
+
+# Superficie comun para NeRF, Gaussian y profundidad: TSDF en el marco del tablero
+tsdf:
+  voxel_mm: 1.5
+  trunc_mm: 6.0
+  profundidad_max_m: 1.2
+  puntos_superficie: 300000        # muestreo de la malla TSDF -> resultado.ply
+
+nerf:                              # nerfstudio nerfacto
+  metodo: nerfacto
+  optimizar_camaras: "off"         # poses exactas (sintetico) / de la captura (real): no se tocan
+  acumulacion_min: 0.5             # al renderizar profundidad: pixeles con densidad suficiente
+  rayos_por_bloque: 65536          # render de profundidad (mas = mas rapido, mas VRAM)
+  extra: []                        # argumentos extra para ns-train
+splat:                             # nerfstudio splatfacto (gsplat)
+  metodo: splatfacto
+  init_puntos_colmap: true         # entrada/sparse_pc.ply (triangulado con poses fijas)
+  acumulacion_min: 0.5
+  rayos_por_bloque: null
+  extra: []
+fotogrametria:                     # COLMAP MVS con las poses fijas (sparse/0 triangulado)
+  geom_consistency: true
+  fusion_min_pixeles: 3
+  usar_mascara_roi: true
+profundidad:                       # nubes de las L515: retroproyeccion + ICP multivista + TSDF
+  cuadros_validos_min: 0.5         # fraccion de los 10 cuadros con valor para usar el pixel
+  voxel_icp_mm: 2.0
+  icp_dist_max_mm: [5.0, 2.0]      # point-to-plane con kernel de Tukey; las poses ya son buenas
+  tukey_mm: 2.0
+  vecinos_paradas: 1               # pares ICP: misma parada entre camaras y +-N paradas
+  refinar_poses: true              # false = solo poses de meta.json
+  max_correccion_mm: 5.0           # en el centro del objeto; mayor = arista incierta
+  consistencia_dist_mm: 5.0        # NN entre vistas para medir consistencia (antes/despues)
+
+perfiles:
+  completo:
+    nerf_iteraciones: 30000
+    splat_iteraciones: 30000
+    mvs_max_imagen_px: 1280
+  rapido:                          # para validar el flujo (minutos)
+    nerf_iteraciones: 1500
+    splat_iteraciones: 1500
+    mvs_max_imagen_px: 640
+
+# Limpieza de las nubes ANTES de evaluar (recon/limpieza.py), igual para las 4 tecnicas:
+#   1) ROI (cilindro sobre el eje)  2) piso: plano del tablero ajustado con RANSAC en la propia
+#   nube y se quita todo lo que quede a menos de sobre_plano_mm  3) outliers estadisticos
+#   4) clusters: el mayor + los grandes (>= min_fraccion) a menos de union_mm de el; resto = flotantes
+# Salida: <tecnica>/resultado_limpio.ply (+ limpieza en metricas.json)
+limpieza:
+  semilla: 0                       # RANSAC reproducible
+  plano:
+    busqueda_mm: 10.0              # candidatos al plano: |z| < esto (marco del tablero)
+    ransac_dist_mm: 1.5
+    ransac_iter: 2000
+    min_puntos: 2000               # menos candidatos -> se usa el plano z = 0 de las poses
+    max_inclinacion_deg: 3.0       # plano ajustado mas inclinado -> se usa z = 0
+    max_desplazamiento_mm: 5.0     # plano ajustado mas lejos de z = 0 (en el eje) -> se usa z = 0
+    anillo_frac: 0.75              # corona exterior de la ROI (r > 0.75 R: nunca hay objeto): ahi se
+                                   # ajusta el plano y se mide el grosor del piso reconstruido
+    grosor_percentil: 99           # grosor del piso = este percentil de la altura en la corona
+    margen_mm: 1.0
+  sobre_plano_mm: 5.0              # corte MINIMO del piso sobre el plano; el corte real es
+                                   # max(esto, grosor + margen) <= corte_max_mm (NeRF/3DGS dan un piso
+                                   # "grueso"). El GT se recorta a la misma altura en cada tecnica.
+  corte_max_mm: 10.0
+  estadistico:                     # open3d remove_statistical_outlier
+    vecinos: 20
+    std: 2.0
+  clusters:                        # DBSCAN sobre la nube submuestreada
+    voxel_mm: 1.5
+    eps_mm: 4.0
+    min_puntos: 5
+    min_fraccion: 0.02             # clusters mas chicos (fraccion de puntos) = flotantes
+    union_mm: 15.0                 # cluster grande pero a mas de esto del objeto = flotante
+
+evaluacion:
+  muestras_gt: 300000
+  umbrales_fscore_mm: [1.0, 2.0, 5.0]
+  error_ply_max_mm: 10.0
+  curva_umbrales_mm: {max: 10.0, paso: 0.25}   # precision/recall/F vs umbral (informe)           # evaluacion/<tecnica>_error.ply: color por error, saturado aqui
+  # Captura real: la pose del objeto no se conoce (va fuera del eje). Se registra la malla GT
+  # (la del gemelo) sobre la reconstruccion de profundidad: busqueda de yaw + ICP, y esa pose
+  # se usa para TODAS las tecnicas. Ademas se reporta cada tecnica con ICP propio.
+  registro_real:
+    yaw_paso_deg: 15
+    icp_dist_mm: [15.0, 5.0, 2.0]
+  icp_por_tecnica_mm: [5.0, 2.0]
+
+informe:                           # recon/informe.py -> Resultados/<dir>/informe.md + figuras/
+  dir: evaluacion
+  puntos_figura: 40000             # submuestreo por nube en las figuras
+  semilla: 0

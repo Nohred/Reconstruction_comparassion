@@ -1,0 +1,66 @@
+# Gemelo digital de una captura real:
+#   Captura_real/<captura>/  ->  Captura_sintetica/<captura>[sufijo del modo]/
+# (tools/twin.sh <captura>). El objeto sale de session.json["objeto"] de la captura real (clave
+# de configs/objects.yaml) salvo que se fije aqui.
+objeto: null
+modo: replay                 # replay: poses reales de la captura | aleatorio: plantilla + variabilidad
+sufijo_modo: {replay: "", aleatorio: ""}
+plantilla: Captura_real/bunnny   # camaras, intrinsecos, rig y paradas de referencia (modo aleatorio)
+
+# Modo aleatorio: variabilidad de captura alrededor de la plantilla. Semilla por defecto = hash
+# estable del nombre de la captura (cada objeto tiene su propia variacion, reproducible).
+aleatorio:
+  semilla: null
+  giro:                          # por parada: k*360/N + N(0, sigma) recortado a +-max
+    sigma_deg: 1.22              # medido en Captura_real/bunnny (medido - objetivo, session.json)
+    max_deg: 3.0                 # = tol de capture_turntable.py
+  camaras:                       # una vez por captura (rig re-montado). SUPUESTOS, no medidos.
+    azimut_sigma_deg: 2.0        # alrededor del eje de la base
+    elevacion_sigma_deg: 1.5
+    distancia_sigma_mm: 10.0
+    punteria_sigma_deg: 0.7      # giro de la camara sobre si misma (pan/tilt)
+    roll_sigma_deg: 0.5
+    max_sigmas: 2.5              # recorte de cada perturbacion
+camaras: all                 # "all" = las de la captura real, o lista [alta, media, baja]
+paradas: all                 # "all" o lista de indices
+incluir_objeto: true
+distorsion_color: true       # lente OpenCV pinhole con los coeficientes reales
+gt_dir: gt                   # dentro de la captura sintetica (fuera de <camara>/stop_XX/)
+gt_file: ground_truth.json
+cache_modelos: Resultados/assets/modelos   # USD aplanados + texturas extraidas (USDZ anidados)
+
+# Anotadores RTX por camara. Las mascaras salen de instance_id_segmentation.
+anotadores:
+  color: [rgb, instance_id_segmentation]
+  profundidad: [distance_to_image_plane, instance_id_segmentation]
+
+# Profundidad ruidosa (depth_XX.png). Numero de cuadros = session.json parametros.cuadros real.
+# PROVISIONAL (fase 6). Medido en Captura_real/bunnny (std temporal mediana por pixel, rango
+# dominante de cada camara; ~6 % de pixeles validos cae a 0 en cada cuadro).
+ruido_profundidad:
+  activo: true
+  sigma_mm: {alta: 3.5, media: 1.6, baja: 0.9}
+  p_perdida: 0.06
+  salto_borde_mm: 20.0        # discontinuidad de profundidad que invalida pixeles
+  dilatar_borde_px: 1
+  semilla: 0
+
+# Campos de hardware que no se simulan: se copian de la captura real (documentado en el GT).
+copiar_de_real: [temperatures]
+notas_sesion: "sintetico Isaac Sim (gemelo de {captura}, modo {modo})"
+
+# Validacion del tablero sintetico (eval/validate_charuco.py)
+validacion:
+  # CRITERIO: exactitud del render. cornerSubPix en las esquinas proyectadas con el GT.
+  subpix_win: 3
+  max_render_bias_px: 0.1          # |mediana| por eje (robusta a esquinas junto a la sombra)
+  max_render_median_px: 0.25       # mediana de |error|
+  # INFORMATIVO: el detector real (OpenCV 4.10) tiene un sesgo propio de ~+0.5 px (medido en
+  # datos reales: 4.14 - 4.10 = -0.43 px), que da ~0.4 mm de error de pose en real y sintetico.
+  detector_bias_px: 0.5
+  max_detector_bias_dev_px: 0.15   # el sesgo sintetico debe parecerse al esperado
+  # Profundidad perfecta: plano del tablero retroproyectado (marco del tablero, z = 0)
+  max_plano_rms_mm: 0.5
+  # Silueta GT proyectada vs mascara del render: el mejor desplazamiento entero (busqueda +-N px)
+  # debe ser (0, 0). El borde difiere ~1 px por el muestreo (RTX vs fillPoly).
+  silueta_busqueda_px: 3

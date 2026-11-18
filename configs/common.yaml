@@ -1,0 +1,55 @@
+# Configuracion comun del gemelo digital. Rutas relativas a la raiz del repo.
+paths:
+  real_root: Captura_real              # capturas reales: Captura_real/<carpeta_real>/
+  synthetic_root: Captura_sintetica    # gemelos: Captura_sintetica/<captura>/ (misma estructura)
+  recon_root: Reconstrucciones         # Reconstrucciones/<real|sintetica>/<captura>/<tecnica>/
+  results_root: Resultados             # tablas comparativas y assets
+  real_scripts: Captura_real/scripts   # codigo de captura real (l515_common.py); solo lectura
+
+# Formato de una captura (identico en real y sintetico).
+capture_layout:
+  cameras: [alta, media, baja]
+  stop_dir: "stop_{k:02d}"
+  color_file: color.png
+  depth_file: "depth_{i:02d}.png"
+  meta_file: meta.json
+  calib_file: calib.json
+  rig_file: rig.json
+  session_file: session.json
+
+conventions:
+  pose_units: mm                       # meta.json / rig.json: p_color = R @ p_board + t, en mm
+  # Las nubes de revision/ (y el GT sintetico) usan p_rev = diag(revision_flip) @ p_board.
+  # Verificado retroproyectando la profundidad real (NN mediano 0.59 mm). Es un REFLEJO (det -1).
+  revision_flip: [1.0, 1.0, -1.0]
+  # Mundo de Isaac Sim: metros, Z arriba. p_world = world_scale * Rx(180) @ p_board
+  world_scale_from_board: 0.001        # mm -> m
+
+# Exportacion para reconstruccion (eval/export_recon.py). La MISMA para real y sintetico.
+recon:
+  entrada_dir: entrada                 # Reconstrucciones/<fuente>/<captura>/entrada/
+  # COLMAP, nerfstudio y gsplat ponen el CENTRO del pixel (0,0) en (0.5, 0.5); OpenCV en (0,0).
+  # cameras.txt y transforms.json llevan cx, cy + 0.5. vistas.json guarda K en convencion OpenCV.
+  principal_point_offset_px: 0.5
+  units_scale_from_mm: 0.001           # metros; marco del mundo = tablero (z hacia la mesa)
+  undistort: true                      # imagenes sin distorsion -> modelo PINHOLE
+  image_ext: png
+  check_max_reproj_px: 0.5             # --check: mediana GLOBAL con la pose 'directa'
+                                       # (correr con tools/cv_py.sh = mismo OpenCV que la captura)
+  check_min_esquinas: 12               # vistas con menos esquinas no entran al criterio global
+  check_min_vistas: 8                  # si quedan menos vistas, se usan todas
+  # Mascara de region de interes (ROI) = cilindro sobre el eje de la base, proyectado en cada
+  # imagen. La mesa/fondo NO giran con el objeto: sin mascara NeRF/3DGS ven un fondo inconsistente.
+  roi:
+    radio_mm: 160.0                    # objeto real hasta ~40 mm fuera del eje + su radio
+    altura_mm: 190.0                   # sobre el tablero (bunny: 166 mm)
+    altura_margen_mm: 20.0             # sintetica: altura = max(altura_mm, alto del objeto GT + esto)
+    bajo_tablero_mm: 5.0
+    muestras: 72
+  # Triangulacion con poses fijas (eval/triangulate.py) -> sparse/0/points3D (3DGS lo necesita).
+  triangulacion:
+    colmap_env: colmap_cuda            # entorno conda con el binario colmap (o COLMAP_BIN=...)
+    camera_model: PINHOLE
+    usar_mascara_roi: true             # features solo dentro de la ROI (el fondo no gira)
+    matcher: exhaustive_matcher        # 48 imagenes: exhaustivo es barato
+

@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "deny": [
+      "Read(/**/*.ply)",
+      "Read(/**/*.png)",
+      "Read(/**/*.usd)",
+      "Read(/**/*.usdc)",
+      "Read(/**/*.npy)",
+      "Read(/**/*.npz)",
+      "Read(/**/*.bag)",
+      "Edit(/Captura_real/**)",
+      "Edit(/Objects/**)"
+    ]
+  }
+}
