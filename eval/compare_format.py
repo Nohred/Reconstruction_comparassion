@@ -1,6 +1,6 @@
 """Compara el formato de una captura sintetica con la real de referencia (resumen corto).
 
-    tools/cv_py.sh -m eval.compare_format Captura_sintetica/bunnny
+    tools/cv_py.sh -m eval.compare_format Captura_sintetica/bunny_x200
 
 1. Estructura: mismos archivos por (camara, parada) [se ignoran gt/ y ground_truth.json].
 2. JSON: mismo arbol de claves y tipos (session.json, rig.json, calib.json, meta.json).

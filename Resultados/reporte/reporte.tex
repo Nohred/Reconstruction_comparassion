@@ -1,0 +1,80 @@
+\documentclass[10pt]{article}
+\usepackage[a4paper,landscape,margin=1.4cm]{geometry}
+\usepackage[utf8]{inputenc}\usepackage[T1]{fontenc}\usepackage[spanish]{babel}
+\usepackage{lmodern,booktabs,multirow,array}\usepackage[table]{xcolor}\usepackage{caption}
+\definecolor{gris}{gray}{0.92}\captionsetup{font=small,labelfont=bf}
+\setlength{\tabcolsep}{3pt}\pagestyle{empty}
+\begin{document}
+\begin{center}{\Large Reconstrucci\'on 3D: capturas reales vs gemelo sint\'etico}\\[2pt]{\small \today}\end{center}\vspace{-2mm}
+\noindent{\small Cada captura real (3 L515 fijas, base giratoria con tablero ChArUco, 16 paradas) se reprodujo en Isaac Sim con las mismas poses de c\'amara y de la base (gemelo sint\'etico). Ambas se reconstruyeron con las mismas cuatro t\'ecnicas y la misma entrada (poses e intr\'insecos conocidos), se limpiaron igual (ROI, piso, outliers, flotantes) y se compararon con la malla GT; en la real, el GT se registr\'o con ICP de 4 GDL (pose de consenso). Capturas: P1, artefacto, bunny\_x100, bunny\_x200, cesar.}
+\par\vspace{2mm}\begin{center}\scriptsize
+\captionof{table}{Detalle por t\'ecnica y captura. R = real, S = sint\'etico (gemelo), $\Delta$ = R $-$ S. \textbf{Negrita}: mejor t\'ecnica en esa captura, fuente y m\'etrica. $\downarrow$ menor es mejor, $\uparrow$ mayor es mejor.}
+\begin{tabular}{llrrrrrrrrrrrrrrrrrr}
+\toprule
+& & \multicolumn{3}{c}{\shortstack{Chamfer\\(mm) $\downarrow$}} & \multicolumn{2}{c}{\shortstack{Precis. med.\\(mm) $\downarrow$}} & \multicolumn{2}{c}{\shortstack{Complet. med.\\(mm) $\downarrow$}} & \multicolumn{2}{c}{\shortstack{Haus. p95\\(mm) $\downarrow$}} & \multicolumn{2}{c}{\shortstack{F@1mm\\ $\uparrow$}} & \multicolumn{3}{c}{\shortstack{F@2mm\\ $\uparrow$}} & \multicolumn{2}{c}{\shortstack{F@5mm\\ $\uparrow$}} & \multicolumn{2}{c}{\shortstack{Real\\con ICP}} \\
+\cmidrule(lr){3-5} \cmidrule(lr){6-7} \cmidrule(lr){8-9} \cmidrule(lr){10-11} \cmidrule(lr){12-13} \cmidrule(lr){14-16} \cmidrule(lr){17-18} \cmidrule(lr){19-20}
+T\'ecnica & Captura & R & S & $\Delta$ & R & S & R & S & R & S & R & S & R & S & $\Delta$ & R & S & Ch. & mueve \\
+\midrule
+\multirow{6}{*}{nerf} & P1 & \textbf{1.56} & 0.83 & +0.73 & \textbf{0.90} & 0.62 & \textbf{0.80} & 0.68 & 7.2 & 2.4 & \textbf{0.56} & 0.74 & 0.77 & 0.93 & -0.17 & 0.91 & 1.00 & 1.49 & 0.7 \\
+ & artefacto & \textbf{1.23} & 1.21 & +0.02 & \textbf{0.79} & 0.71 & \textbf{0.88} & 0.77 & 4.1 & 4.7 & \textbf{0.58} & 0.63 & \textbf{0.82} & 0.83 & -0.01 & \textbf{0.98} & 0.97 & 1.22 & 0.2 \\
+ & bunny\_x100 & \textbf{0.87} & 0.72 & +0.15 & \textbf{0.57} & 0.51 & \textbf{0.68} & 0.59 & 3.1 & 2.1 & \textbf{0.77} & 0.86 & \textbf{0.93} & 0.97 & -0.04 & 0.99 & 0.99 & 0.86 & 0.2 \\
+ & bunny\_x200 & \textbf{1.73} & 1.70 & +0.03 & 1.08 & 0.90 & \textbf{1.00} & 0.86 & 9.4 & 9.3 & 0.48 & 0.57 & \textbf{0.79} & 0.82 & -0.03 & \textbf{0.93} & 0.93 & 1.73 & 0.2 \\
+ & cesar & \textbf{2.81} & 2.14 & +0.67 & 1.29 & 0.81 & \textbf{1.63} & 0.92 & 13.0 & 11.0 & 0.34 & 0.55 & 0.62 & 0.72 & -0.10 & \textbf{0.83} & 0.86 & 2.80 & 0.2 \\
+\rowcolor{gris} & \textit{media} & 1.64 & 1.32 & +0.32 & 0.93 & 0.71 & 1.00 & 0.76 & 7.4 & 5.9 & 0.55 & 0.67 & 0.79 & 0.85 & -0.07 & 0.93 & 0.95 & 1.62 & 0.3 \\
+\midrule
+\multirow{6}{*}{gaussian} & P1 & 2.24 & 1.36 & +0.87 & 1.14 & 0.99 & 1.61 & 1.11 & 7.5 & 4.7 & 0.37 & 0.47 & 0.63 & 0.83 & -0.20 & 0.87 & 0.97 & 2.26 & 0.8 \\
+ & artefacto & 1.30 & 1.68 & -0.38 & 0.86 & 0.90 & 1.11 & 1.21 & \textbf{3.6} & 5.6 & 0.50 & 0.47 & 0.82 & 0.75 & +0.07 & 0.98 & 0.93 & 1.28 & 0.4 \\
+ & bunny\_x100 & 0.97 & 1.32 & -0.35 & 0.71 & 0.79 & 0.82 & 0.84 & \textbf{2.8} & 6.7 & 0.65 & 0.63 & 0.92 & 0.86 & +0.06 & \textbf{0.99} & 0.96 & 0.96 & 0.3 \\
+ & bunny\_x200 & 2.49 & 3.07 & -0.58 & 1.50 & 1.53 & 1.23 & 1.09 & 11.6 & 17.4 & 0.38 & 0.41 & 0.65 & 0.64 & +0.01 & 0.85 & 0.81 & 2.49 & 0.1 \\
+ & cesar & 3.30 & 2.58 & +0.72 & 1.89 & 1.02 & 2.49 & 1.25 & \textbf{12.3} & 10.6 & 0.23 & 0.46 & 0.46 & 0.64 & -0.18 & 0.80 & 0.83 & 3.33 & 1.0 \\
+\rowcolor{gris} & \textit{media} & 2.06 & 2.00 & +0.06 & 1.22 & 1.05 & 1.45 & 1.10 & 7.6 & 9.0 & 0.43 & 0.49 & 0.70 & 0.75 & -0.05 & 0.90 & 0.90 & 2.06 & 0.5 \\
+\midrule
+\multirow{6}{*}{fotogrametria} & P1 & 1.59 & 1.80 & -0.21 & 1.04 & 1.04 & 1.12 & 1.22 & 6.2 & 6.7 & 0.45 & 0.45 & \textbf{0.78} & 0.70 & +0.09 & 0.95 & 0.93 & 1.30 & 1.2 \\
+ & artefacto & 1.85 & 2.07 & -0.22 & 1.21 & 1.12 & 1.33 & 1.34 & 5.3 & 9.3 & 0.42 & 0.42 & 0.64 & 0.67 & -0.03 & 0.94 & 0.91 & 1.84 & 1.3 \\
+ & bunny\_x100 & 1.24 & 1.30 & -0.06 & 0.75 & 0.73 & 0.99 & 0.90 & 4.3 & 5.6 & 0.56 & 0.58 & 0.84 & 0.82 & +0.02 & 0.98 & 0.97 & 1.24 & 0.3 \\
+ & bunny\_x200 & 2.13 & 1.86 & +0.27 & \textbf{0.68} & 0.53 & 1.09 & 0.87 & 15.8 & 13.5 & \textbf{0.54} & 0.62 & 0.76 & 0.79 & -0.03 & 0.91 & 0.91 & 2.12 & 0.2 \\
+ & cesar & 3.71 & 3.60 & +0.11 & \textbf{0.63} & 0.37 & 2.16 & 1.50 & 22.6 & 23.5 & \textbf{0.42} & 0.60 & \textbf{0.63} & 0.68 & -0.05 & 0.76 & 0.76 & 3.71 & 0.4 \\
+\rowcolor{gris} & \textit{media} & 2.10 & 2.13 & -0.02 & 0.86 & 0.76 & 1.34 & 1.17 & 10.8 & 11.7 & 0.48 & 0.54 & 0.73 & 0.73 & +0.00 & 0.91 & 0.89 & 2.04 & 0.7 \\
+\midrule
+\multirow{6}{*}{profundidad} & P1 & 1.96 & \textbf{0.27} & +1.69 & 1.51 & \textbf{0.11} & 2.27 & \textbf{0.33} & \textbf{4.7} & \textbf{0.8} & 0.26 & \textbf{0.99} & 0.52 & \textbf{1.00} & -0.48 & \textbf{0.98} & \textbf{1.00} & 1.35 & 2.5 \\
+ & artefacto & 3.40 & \textbf{0.30} & +3.11 & 1.89 & \textbf{0.14} & 5.08 & \textbf{0.35} & 8.2 & \textbf{0.8} & 0.12 & \textbf{0.99} & 0.31 & \textbf{1.00} & -0.69 & 0.65 & \textbf{1.00} & 1.20 & 6.4 \\
+ & bunny\_x100 & 3.07 & \textbf{0.29} & +2.78 & 2.30 & \textbf{0.14} & 3.08 & \textbf{0.33} & 9.8 & \textbf{0.7} & 0.18 & \textbf{0.98} & 0.38 & \textbf{1.00} & -0.62 & 0.86 & \textbf{1.00} & 1.86 & 5.9 \\
+ & bunny\_x200 & 2.42 & \textbf{0.26} & +2.16 & 2.15 & \textbf{0.11} & 2.16 & \textbf{0.34} & \textbf{5.5} & \textbf{0.6} & 0.21 & \textbf{0.99} & 0.46 & \textbf{1.00} & -0.53 & 0.92 & \textbf{1.00} & 1.67 & 5.1 \\
+ & cesar & 9.22 & \textbf{0.89} & +8.33 & 4.01 & \textbf{0.23} & 10.03 & \textbf{0.48} & 47.1 & \textbf{8.7} & 0.10 & \textbf{0.88} & 0.19 & \textbf{0.92} & -0.73 & 0.38 & \textbf{0.95} & 9.00 & 16.1 \\
+\rowcolor{gris} & \textit{media} & 4.01 & 0.40 & +3.61 & 2.37 & 0.14 & 4.52 & 0.37 & 15.1 & 2.3 & 0.17 & 0.97 & 0.37 & 0.98 & -0.61 & 0.76 & 0.99 & 3.02 & 7.2 \\
+\bottomrule
+\end{tabular}
+\end{center}
+\begin{center}\scriptsize
+\captionof{table}{Media por t\'ecnica sobre las capturas; lugar R/S = posici\'on entre las t\'ecnicas (1 = mejor) en real y en sint\'etico.}
+\begin{tabular}{lrrrrrrrrrrrrrrrrrrrrr}
+\toprule
+& \multicolumn{3}{c}{Chamfer} & \multicolumn{3}{c}{Precis. med.} & \multicolumn{3}{c}{Complet. med.} & \multicolumn{3}{c}{Haus. p95} & \multicolumn{3}{c}{F@1mm} & \multicolumn{3}{c}{F@2mm} & \multicolumn{3}{c}{F@5mm} \\
+\cmidrule(lr){2-4} \cmidrule(lr){5-7} \cmidrule(lr){8-10} \cmidrule(lr){11-13} \cmidrule(lr){14-16} \cmidrule(lr){17-19} \cmidrule(lr){20-22}
+T\'ecnica & R & S & lugar R/S & R & S & lugar R/S & R & S & lugar R/S & R & S & lugar R/S & R & S & lugar R/S & R & S & lugar R/S & R & S & lugar R/S \\
+\midrule
+nerf & \textbf{1.64} & 1.32 & 1/2 & 0.93 & 0.71 & 2/2 & \textbf{1.00} & 0.76 & 1/2 & \textbf{7.4} & 5.9 & 1/2 & \textbf{0.55} & 0.67 & 1/2 & \textbf{0.79} & 0.85 & 1/2 & \textbf{0.93} & 0.95 & 1/2 \\
+gaussian & 2.06 & 2.00 & 2/3 & 1.22 & 1.05 & 3/4 & 1.45 & 1.10 & 3/3 & 7.6 & 9.0 & 2/3 & 0.43 & 0.49 & 3/4 & 0.70 & 0.75 & 3/3 & 0.90 & 0.90 & 3/3 \\
+fotogrametria & 2.10 & 2.13 & 3/4 & \textbf{0.86} & 0.76 & 1/3 & 1.34 & 1.17 & 2/4 & 10.8 & 11.7 & 3/4 & 0.48 & 0.54 & 2/3 & 0.73 & 0.73 & 2/4 & 0.91 & 0.89 & 2/4 \\
+profundidad & 4.01 & \textbf{0.40} & 4/1 & 2.37 & \textbf{0.14} & 4/1 & 4.52 & \textbf{0.37} & 4/1 & 15.1 & \textbf{2.3} & 4/1 & 0.17 & \textbf{0.97} & 4/1 & 0.37 & \textbf{0.98} & 4/1 & 0.76 & \textbf{0.99} & 4/1 \\
+\bottomrule
+\end{tabular}
+\end{center}
+\par\noindent\begin{minipage}[t]{0.49\textwidth}\footnotesize
+\textbf{M\'etricas} (contra la malla GT; la franja de la base no observable se excluye)
+\begin{itemize}\setlength\itemsep{0pt}
+\item \textbf{Precisi\'on}: distancia de cada punto reconstruido a la superficie GT (mediana). Mide ruido, flotantes y desplazamientos.
+\item \textbf{Completitud}: distancia de muestras de la superficie GT al punto reconstruido m\'as cercano (mediana). Mide huecos y zonas no reconstruidas.
+\item \textbf{Chamfer}: promedio de precisi\'on media y completitud media: error global en mm.
+\item \textbf{Hausdorff p95}: percentil 95 de las distancias: error de los peores puntos (bordes, colas, flotantes).
+\item \textbf{F@$t$}: media arm\'onica de la fracci\'on de puntos a menos de $t$\,mm del GT y de la fracci\'on del GT cubierta a menos de $t$\,mm (0--1). F@1 = detalle fino, F@2 = global, F@5 = forma gruesa.
+\item \textbf{ICP}: Sin ICP (todas las columnas R/S) se mide en el marco de la captura: forma + posici\'on. ``Real con ICP'': Chamfer tras alinear la nube al GT (solo forma) y cu\'anto la movi\'o el ICP (mm).
+\end{itemize}\end{minipage}\hfill\begin{minipage}[t]{0.49\textwidth}\footnotesize
+\textbf{Observaciones}
+\begin{itemize}\setlength\itemsep{0pt}
+\item Mejor t\'ecnica por Chamfer medio: \textbf{nerf} en real (1.64\,mm) y \textbf{profundidad} en sint\'etico (0.40\,mm).
+\item Brecha real $-$ sint\'etico del Chamfer medio: nerf +0.32\,mm, gaussian +0.06\,mm, fotogrametria -0.02\,mm, profundidad +3.61\,mm.
+\item Brecha real $-$ sint\'etico del F@2mm medio: nerf -0.07, gaussian -0.05, fotogrametria +0.00, profundidad -0.61.
+\item En real, \textit{profundidad} queda desplazada en promedio 7.2\,mm del marco del tablero (ChArUco/RGB); alineada con ICP su Chamfer medio baja a 3.02\,mm.
+\end{itemize}\end{minipage}
+\end{document}

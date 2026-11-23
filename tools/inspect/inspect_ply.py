@@ -1,6 +1,6 @@
 """Resumen compacto de uno o varios .ply (nube o malla). Solo lectura.
 
-    tools/inspect/run.sh inspect_ply.py Captura_real/bunnny/revision/*.ply
+    tools/inspect/run.sh inspect_ply.py Captura_real/bunny_x200/revision/*.ply
 
 Imprime: puntos/caras, bounding box, extension, centroide, espaciado medio entre vecinos
 (escala estimada), colores/normales y una suposicion de unidades.

@@ -6,6 +6,7 @@ logs/
 # Captura real: se sube como referencia, salvo la malla Poisson del colega (137 MB > limite de
 # GitHub de 100 MB; el flujo no la usa)
 Captura_real/*/revision/malla_poisson.ply
+Captura_real/*.zip
 
 # Reconstrucciones: solo la nube final limpia y las metricas (lo intermedio se regenera con run.sh)
 Reconstrucciones/**
@@ -17,3 +18,20 @@ Reconstrucciones/**
 Resultados/*
 !Resultados/evaluacion/
 !Resultados/resumen.csv
+!Resultados/reporte/
+Resultados/reporte/*
+!Resultados/reporte/reporte.tex
+!Resultados/reporte/reporte.pdf
+
+# capturas/reconstrucciones retiradas del informe (modelos sin captura real)
+Archivo/
+
+# Articulo: fuentes, figuras, tablas y main.pdf se suben; auxiliares de LaTeX no
+Articulo/*.aux
+Articulo/*.log
+Articulo/*.bbl
+Articulo/*.blg
+Articulo/*.fls
+Articulo/*.fdb_latexmk
+Articulo/*.out
+Resultados/reporte/*.aux

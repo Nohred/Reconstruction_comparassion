@@ -1,0 +1,11 @@
+We presented a paired benchmark that measures the sim-to-real gap of 3D reconstruction by reproducing each
+real turntable capture of a 3D-printed object in a digital twin with identical camera calibration and
+turntable poses, and by evaluating NeRF, 3DGS, MVS and RGB-D fusion with one protocol against the CAD model.
+The twin reproduces fiducial detections within 0.11~px and silhouettes with IoU~$\geq$~0.975, and the
+reference artifact deviates from its CAD by \printmae~mm on average. Over \nobj\ objects, the twin predicts
+the accuracy of the image-based methods within a few tenths of a millimeter (mean gaps \nerfD, \gsD\ and
+\mvsD~mm for NeRF, 3DGS and MVS), whereas it underestimates the real error of RGB-D fusion by an order of
+magnitude because the real error is dominated by a 2.5--16~mm offset of the L515 depth with respect to the
+photogrammetric frame, which is largest on a translucent material. Future work will incorporate a measured
+sensor error model in the twin, repeated captures to obtain confidence intervals, swap experiments that
+attribute the gap to poses, sensor and appearance, and color-fidelity metrics.

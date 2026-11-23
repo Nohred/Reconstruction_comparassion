@@ -1,6 +1,6 @@
 """Etapa 1 de la captura sintetica (Isaac Sim, headless).
 
-    isaac-python sim/capture.py gemelo Captura_real/bunnny
+    isaac-python sim/capture.py gemelo Captura_real/bunny_x200
     isaac-python sim/capture.py modelo ~/Escritorio/3D_reconstruction/3D_Models/sneaker.usdz
     isaac-python sim/capture.py modelo bunny --semilla 3 --nombre bunny_s3 --tamano-mm 150
 
@@ -35,7 +35,7 @@ def parse_args(argv=None):
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = ap.add_subparsers(dest="cmd", required=True)
     g = sub.add_parser("gemelo", help="reproducir una captura real")
-    g.add_argument("captura", help="carpeta de la captura real (p. ej. Captura_real/bunnny)")
+    g.add_argument("captura", help="carpeta de la captura real (p. ej. Captura_real/bunny_x200)")
     m = sub.add_parser("modelo", help="cualquier USD con la plantilla y variabilidad aleatoria")
     m.add_argument("modelo", help="clave de configs/objects.yaml o ruta a .usd/.usdz")
     m.add_argument("--nombre", help="nombre de la captura (por defecto el del modelo)")

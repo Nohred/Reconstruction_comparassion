@@ -1,6 +1,6 @@
 """Lectura de una captura en el formato de capture_turntable.py (real o sintetica).
 
-    cap = Capture.open(Path("Captura_real/bunnny"))
+    cap = Capture.open(Path("Captura_real/bunny_x200"))
     for v in cap.views():            # una vista por (camara, parada) con pose
         v.T_color_from_board, v.color_path, v.depth_paths
 """

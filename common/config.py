@@ -36,8 +36,13 @@ def object_config(spec, objects_cfg=None):
     """
     cfg = objects_cfg or load_config("objects")
     defaults = cfg.get("defaults", {})
+    reales = cfg.get("reales") or {}
     if spec in cfg["objects"]:
         obj, name = cfg["objects"][spec], spec
+    elif spec in reales:              # objeto de una captura real: entrada base + sus cambios
+        ref = reales[spec]
+        name = ref["objeto"]
+        obj = {**cfg["objects"][name], **{k: v for k, v in ref.items() if k != "objeto"}}
     elif Path(str(spec)).suffix.lower() in USD_SUFFIXES:
         path = Path(spec).expanduser()
         if not path.is_absolute():

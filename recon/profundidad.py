@@ -1,6 +1,6 @@
 """Tecnica 4: fusion de las nubes de profundidad de las L515.
 
-    tools/ns_py.sh -m recon.profundidad Reconstrucciones/real/bunnny
+    tools/ns_py.sh -m recon.profundidad Reconstrucciones/real/bunny_x200
 
 1. Por vista (camara, parada): mediana de los N cuadros depth_XX.png (pixel valido si tiene
    valor en >= cuadros_validos_min de ellos), retroproyeccion con los intrinsecos de profundidad

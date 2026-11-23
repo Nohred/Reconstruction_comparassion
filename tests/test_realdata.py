@@ -9,7 +9,7 @@ from common.config import load_config, repo_path
 from common.realdata import Capture
 
 CFG = load_config("common")
-ROOT = repo_path(CFG["paths"]["real_root"]) / "bunnny"
+ROOT = repo_path(CFG["paths"]["real_root"]) / "bunny_x200"
 
 
 @unittest.skipUnless(ROOT.exists(), f"no existe {ROOT}")

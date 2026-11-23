@@ -1,0 +1,37 @@
+\subsection{When is the twin a valid proxy?}
+For passive, image-based reconstruction, the error budget is dominated by the reconstruction itself
+(view coverage, texture, appearance), and the twin reproduces it: on average the real and simulated CD of
+NeRF, 3DGS and MVS differ by $-0.02$ to $+0.32$~mm, with the same ranking in both domains. A twin with
+calibrated cameras and replayed poses can therefore be used to select and tune these methods. For active
+depth, the twin models the sensor as an ideal range measurement plus random noise, so it captures the
+precision of the L515 but not its trueness: the depth-to-color extrinsics, a range bias that depends on the
+material, and subsurface scattering are absent. The result is an optimistic prediction by a factor of ten.
+Closing this gap requires a measured error model of the sensor (per-camera rigid bias and
+material-dependent range bias), which the paired setup makes directly measurable: the per-method ICP
+translation is an estimate of that bias.
+
+\subsection{Uncertainty of the comparison}
+Several error sources limit the resolution with which gaps can be resolved. The CAD-to-print deviation is
+\printmae~mm MAE (max \printmax~mm). The ChArUco board poses have a median detector error of about 0.4~mm
+in the twin, where the true pose is known, and the twin reproduces the board projections within 0.11~px.
+The 4-DOF registration of the CAD to the real reconstructions has an RMS residual of about 1~mm on the
+inlier points. Differences below roughly 0.5~mm between the real and simulated CD should therefore not be
+interpreted as significant, which is the case for MVS and 3DGS on average.
+
+\subsection{Choice of metric}
+Accuracy, completeness and F-score lead to different conclusions than CD alone. On the real captures,
+MVS has the best mean median accuracy of the image-based methods (0.86~mm versus 0.93~mm for NeRF) but a
+worse completeness (1.34 versus 1.00~mm) and the largest H95 among them (10.8~mm), because it leaves
+low-texture regions empty; its CD is therefore similar to that of 3DGS, whose clouds are complete but
+thicker (median accuracy 1.22~mm). Reporting both directions of the distance and several thresholds is
+necessary, in agreement with \cite{zielinski2026comparative,knapitsch2017tanks}.
+
+\subsection{Limitations}
+This study uses one capture per object, so the repeatability of the real measurements, and thus confidence
+intervals of the gap, are not available. Materials and lighting of the twin were matched visually rather
+than measured, the objects were not placed at their real pose on the board (the twin uses a canonical
+placement, Section~\ref{sec:registro}), so the lighting direction relative to the object differs between
+domains, the depth noise model is provisional, and the CAD-to-print deviation was measured with a
+caliper on one artifact only. Color fidelity, which is relevant for the radiance-field methods, was not
+evaluated. Finally, five objects and one trajectory do not cover the variability of textures,
+reflectances and numbers of views that a full factorial study would require.

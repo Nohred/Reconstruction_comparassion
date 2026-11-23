@@ -1,6 +1,6 @@
 """Tecnica 3: fotogrametria densa con COLMAP MVS y las poses FIJAS de la captura.
 
-    tools/ns_py.sh -m recon.fotogrametria Reconstrucciones/real/bunnny
+    tools/ns_py.sh -m recon.fotogrametria Reconstrucciones/real/bunny_x200
 
 entrada/sparse/0 (poses conocidas + puntos triangulados por eval/triangulate.py) ->
 image_undistorter -> patch_match_stereo (CUDA) -> stereo_fusion (con mascara ROI) ->

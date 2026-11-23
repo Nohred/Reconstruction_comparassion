@@ -19,6 +19,10 @@ Reconstrucciones/<real|sintetica>/<nombre>/
     evaluacion/metricas.json, <tecnica>_error.ply, gt_tablero_m.ply   logs/   estado/*.hecho
 Resultados/resumen.csv         tabla de todas las evaluaciones
 Resultados/evaluacion/         informe.md + figuras/ (./run.sh informe; generado, no editar)
+Resultados/reporte/            reporte.tex/.pdf corto (./run.sh reporte; recon.yaml reporte)
+Articulo/                      borrador IEEE TIM (ingles): main.tex + *_texto.tex (a mano), figuras/ tablas/
+                               (generadas: ./run.sh articulo, recon.yaml articulo), refs.bib, IEEEtran.cls (CTAN),
+                               datos/mediciones_impresion.yaml (calibrador, de mediciones_temp.jpeg)
 configs/   common.yaml (rutas, formato, recon/entrada) | twin.yaml (captura sintetica, variabilidad)
            scene.yaml | objects.yaml | recon.yaml (tecnicas, perfiles, evaluacion)
 common/    geometria, intrinsecos, lectura de capturas, COLMAP, PLY (numpy)
@@ -35,11 +39,14 @@ Formato de una captura (real = sintetica): `session.json`, `rig.json`, `<cam>/ca
 ## Flujo
 
 ```
-./run.sh gemelo Captura_real/bunnny           # gemelo exacto (poses de la captura real)
+./run.sh gemelo Captura_real/bunny_x200           # gemelo exacto (poses de la captura real)
 ./run.sh modelo <ruta.usd[z]|clave>            # cualquier objeto: plantilla + variabilidad
 ./run.sh fondo reconstruir <real|sintetica>/<nombre>   # entrada + 4 tecnicas + evaluar + informe (horas)
 ./run.sh fondo objetos [claves objects.yaml]   # modelo + reconstruir por objeto (Objects/)
+./run.sh fondo pares [capturas reales]         # gemelo + reconstruir real y sintetica (real vs gemelo)
 ./run.sh evaluar <captura> ; ./run.sh informe  # segundos: re-evaluar / Resultados/evaluacion/informe.md
+./run.sh reporte                               # Resultados/reporte/reporte.pdf (LaTeX, real vs sintetico)
+./run.sh articulo                              # Articulo/main.pdf (figuras/tablas desde las metricas + latexmk)
 ./run.sh estado
 ```
 Etapas idempotentes (marcas en estado/; FORCE=1 rehace), candado de GPU (logs/.gpu.lock),
@@ -103,14 +110,27 @@ lote, render) sin que el usuario lo pida.**
 - **Evaluacion** (recon/limpieza.py + recon/evaluar.py, configs/recon.yaml limpieza/evaluacion): toda
   nube se limpia igual antes de medir: ROI -> piso (plano RANSAC en la corona exterior de la ROI,
   r > 0.75 R, sin objeto; corte = max(5 mm, grosor del piso p99 + 1 mm), NeRF/3DGS dan piso grueso)
-  -> outliers estadisticos -> clusters (el mayor + grandes a < 15 mm; resto flotante). El GT se
-  recorta a la MISMA altura del corte de cada tecnica (base no observable). En la real el GT (malla
-  del gemelo) se registra sobre la nube limpia de profundidad. RANSAC con semilla fija.
-- **ROI**: en sinteticas altura = max(190, alto GT + 20) mm (caesar mide 200 mm).
+  -> outliers estadisticos -> clusters (semilla = el mayor que TOCA el piso: una sabana de flotantes de
+  3DGS supero a bunny_x100; + grandes a < 15 mm; resto flotante). El GT se recorta a la MISMA altura del
+  corte de cada tecnica (base no observable). RANSAC con semilla fija.
+- **Registro del GT en la real**: ICP de 4 GDL (x, y, z, yaw; apoyado, sin inclinar) sobre CADA tecnica;
+  pose = la de menor error mediano en el conjunto (consenso). Gana siempre una RGB: la profundidad L515
+  queda ~5-6 mm desplazada del marco ChArUco (16 mm en cesar, PLA glow translucido). Antes se registraba
+  sobre profundidad (6 GDL) y P1/cesar daban fitness 0.13-0.18.
+- **P1** = pieza propia `Objects/P1.usd` (100x70x33 mm, mm Z arriba), NO la PI2: se detecto porque la nube
+  real no ajustaba a la PI2 con ninguna escala/espejo (2026-11-22); el usuario agrego el USD el 2026-11-23.
+- **ROI**: altura = max(190, alto GT + 20) mm (caesar mide 200 mm); la real usa el GT de su gemelo.
+- **Capturas reales** (2026-11-20, 5): bunny_x200 (= el antiguo `bunnny`, ahora con baja/stop_10,12,14),
+  bunny_x100 (stanford_bunny.usd, mitad), cesar (Caesar, PLA glow), artefacto (PI2, PLA beige) y P1 (P1.usd,
+  PETG gris). session.json[objeto] -> objeto/material en `configs/objects.yaml: reales`. Materiales
+  pla_glow y petg_gris estimados de las fotos (relativos al pla_beige). El gemelo se llama igual que la real.
 - **check de entrada**: mediana global de la pose 'directa' solo con vistas de >= 12 esquinas (objetos
   grandes tapan el tablero y el ruido del detector domina).
 - **Silueta de validacion**: cv2.fillPoly con muchos poligonos rellena par-impar (solapes se cancelan):
   se rasteriza triangulo por triangulo (eval/validate_geometry.render_silhouette). IoU ~0.99.
+- **Validacion ChArUco del gemelo**: criterio global (mediana de todas las vistas y <= 10% de vistas fuera de
+  tolerancia, twin.yaml validacion). Antes una sola vista (0.11 vs 0.10 px, u ocluida) tumbaba el gemelo y
+  `pares`/`objetos` no lo reconstruian (artefacto y bunny_x100, 2026-11-20).
 - **run.sh**: una funcion que termina en `grep | sed` con pipefail devuelve 1 si grep no encuentra
   nada; `etapa` hace `return 0` explicito (eso cortaba `reconstruir` tras una `entrada` nueva).
 
@@ -129,8 +149,11 @@ lote, render) sin que el usuario lo pida.**
 
 ## Pendiente / limitaciones conocidas
 
-- `Captura_real/bunnny/baja/stop_10,12,14` no tienen color.png (la sintetica si).
 - El conejo real esta ~40 mm fuera del eje; el sintetico va centrado (decision del usuario).
+- El gemelo NO reproduce la pose del objeto (colocacion canonica, yaw 0): segun el registro del GT la real
+  esta girada ~180 deg (bunny_x100, artefacto, P1), ~90 deg (cesar) y bunny_x200 a yaw 0 desplazado 37 mm.
+  Camara/tablero si coinciden. Documentado en el articulo (2026-11-23); para igualarla habria que colocar el
+  objeto con registro_gt.T_tablero_m y regenerar el gemelo.
 - Ruido de profundidad provisional (gaussiano + perdida + bordes); calibrar mejor.
 - Las L515 reales son inconsistentes entre si ~5 mm (pares ICP); el ICP multivista de
   `profundidad` lo corrige (consistencia 1.67 -> 1.07 mm). En sintetico corrige ~0.3 mm.

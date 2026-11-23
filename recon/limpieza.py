@@ -12,7 +12,8 @@ Pasos (todos en el marco del tablero, metros):
      corte = clip(max(sobre_plano_mm, grosor + margen), corte_max_mm). El evaluador recorta el GT a
      la misma altura (info["corte_mm"]).
   3) Outliers estadisticos (distancia media a k vecinos > media + std * sigma).
-  4) Clusters (DBSCAN en la nube submuestreada): se queda el mayor y los que tengan >= min_fraccion
+  4) Clusters (DBSCAN en la nube submuestreada): se queda el mayor de los que tocan el piso (a menos
+     de contacto_mm del corte; el objeto esta apoyado) y los que tengan >= min_fraccion
      de los puntos Y esten a menos de union_mm de lo ya aceptado (un objeto puede quedar en partes al
      cortar su base); el resto son flotantes de NeRF/3DGS o restos del piso/soporte.
 Escribe <tecnica>/resultado_limpio.ply y devuelve un resumen de lo quitado en cada paso.
@@ -103,11 +104,16 @@ def clean_cloud(P, roi, lcfg, o3d, etiquetas=False):
         cl = np.asarray(down.cluster_dbscan(c["eps_mm"] * MM, c["min_puntos"]))
         ids, cnt = np.unique(cl[cl >= 0], return_counts=True)
         good = []
-        if len(ids):                                 # el mayor + los grandes cercanos a lo ya aceptado
+        if len(ids):                                 # semilla + los grandes cercanos a lo ya aceptado
             order = ids[np.argsort(-cnt)]
             big = set(ids[cnt >= c["min_fraccion"] * len(D)].tolist())
-            good = [order[0]]
-            pend = [i for i in order[1:] if i in big]
+            # semilla: el mayor de los que TOCAN el piso (el objeto esta apoyado en el tablero); una
+            # "sabana" de flotantes de 3DGS puede tener mas puntos que un objeto chico
+            hD = (D @ n + d) / MM
+            toca = [i for i in order if hD[cl == i].min() <= corte + c["contacto_mm"]]
+            seed = toca[0] if toca else order[0]
+            good = [seed]
+            pend = [i for i in order if i in big and i != seed]
             changed = True
             while pend and changed:
                 tree = cKDTree(D[np.isin(cl, good)])

@@ -1,7 +1,7 @@
 """Tecnicas 1 y 2: NeRF (nerfacto) y Gaussian Splatting (splatfacto) con nerfstudio.
 
-    tools/ns_py.sh -m recon.nerfstudio_tecnica nerf    Reconstrucciones/real/bunnny
-    tools/ns_py.sh -m recon.nerfstudio_tecnica gaussian Reconstrucciones/real/bunnny
+    tools/ns_py.sh -m recon.nerfstudio_tecnica nerf    Reconstrucciones/real/bunny_x200
+    tools/ns_py.sh -m recon.nerfstudio_tecnica gaussian Reconstrucciones/real/bunny_x200
 
 Entrena sobre entrada/transforms.json (poses e intrinsecos conocidos, mascaras ROI, todas las
 imagenes en entrenamiento, sin optimizar camaras) y luego renderiza profundidad + color en las

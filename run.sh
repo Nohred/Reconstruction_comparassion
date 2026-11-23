@@ -25,6 +25,8 @@ Captura sintetica (Isaac Sim) -> Captura_sintetica/<nombre>/   (mismo formato qu
   lote    <carpeta con .usd/.usdz> [opciones de modelo]   un 'modelo' por archivo (+ reconstruir)
   objetos [claves de configs/objects.yaml...]   modelo + reconstruir + informe por objeto
                                             (sin claves = todos los de objects.yaml)
+  pares   [capturas de Captura_real/...]    gemelo + reconstruir real y sintetica + informe
+                                            (sin capturas = todas las de Captura_real/)
 
 Reconstruccion: <captura> = real/<nombre> | sintetica/<nombre>  -> Reconstrucciones/<captura>/
   entrada       <captura>   imagenes sin distorsion, mascaras, COLMAP (poses fijas + puntos),
@@ -38,6 +40,8 @@ Reconstruccion: <captura> = real/<nombre> | sintetica/<nombre>  -> Reconstruccio
   evaluar       <captura>   limpieza + metricas vs malla GT -> evaluacion/, Resultados/resumen.csv
   reconstruir   <captura> [tecnicas...]   entrada + tecnicas (todas por defecto) + evaluar + informe
   informe                   Resultados/evaluacion/informe.md + figuras (todas las capturas evaluadas)
+  reporte                   Resultados/reporte/reporte.tex (+ .pdf): real vs sintetico, tabla detallada
+  articulo                  Articulo/: figuras + tablas (recon.articulo) y main.pdf (IEEEtran, latexmk)
 
 Utilidades
   fondo <etapa> [args]      corre la etapa en segundo plano (sobrevive al cerrar la terminal);
@@ -46,11 +50,12 @@ Utilidades
   pruebas                   pruebas unitarias
 
 Ejemplos
-  ./run.sh gemelo Captura_real/bunnny
-  ./run.sh fondo reconstruir real/bunnny
+  ./run.sh gemelo Captura_real/bunny_x200
+  ./run.sh fondo reconstruir real/bunny_x200
   ./run.sh modelo ~/Escritorio/3D_reconstruction/3D_Models/sneaker.usdz
   ./run.sh fondo lote ~/Escritorio/3D_reconstruction/3D_Models --tamano-mm 150
   ./run.sh fondo objetos caesar artefacto_pi2
+  ./run.sh fondo pares cesar P1            # real vs gemelo, 4 tecnicas
   PERFIL=rapido ./run.sh reconstruir sintetica/sneaker gaussian
 EOF
 }
@@ -161,6 +166,26 @@ objetos() {   # objetos [claves...]: cada objeto de configs/objects.yaml -> capt
     [ ${#fallos[@]} -eq 0 ] && log "objetos completos" || { log "objetos: fallaron ${fallos[*]}"; return 1; }
 }
 
+pares() {    # pares [capturas reales...]: gemelo + reconstruir sintetica y real + informe (real vs sintetico)
+    local caps=("$@") fallos=()
+    if [ ${#caps[@]} -eq 0 ]; then
+        for d in "$ROOT"/Captura_real/*/session.json; do caps+=("$(basename "$(dirname "$d")")"); done
+    fi
+    log "pares: ${caps[*]}"
+    for c in "${caps[@]}"; do
+        c="${c#Captura_real/}"; c="${c%/}"
+        # el gemelo va primero: la real usa su GT (altura de la ROI y evaluacion)
+        if simular gemelo "Captura_real/$c"; then
+            SIN_INFORME=1 reconstruir "sintetica/$c" || fallos+=("sintetica/$c")
+        else
+            fallos+=("gemelo/$c")
+        fi
+        SIN_INFORME=1 reconstruir "real/$c" || fallos+=("real/$c")
+    done
+    informe
+    [ ${#fallos[@]} -eq 0 ] && log "pares completos" || { log "pares: fallaron ${fallos[*]}"; return 1; }
+}
+
 # --- reconstruccion -------------------------------------------------------------------------------
 entrada() {
     local cap="$1" src rd; src="$(captura_dir "$cap")"; rd="$(recon_dir "$cap")"
@@ -207,6 +232,19 @@ informe() {
         || { log "informe FALLO:"; grep -v -E "WARN|│|╭|╰|·|⚠|help:" "$LOGS/informe.log" | tail -5; return 1; }
 }
 
+reporte() {
+    log "reporte -> Resultados/reporte/reporte.tex"
+    tools/ns_py.sh -m recon.reporte 2>&1 | grep -E "^(->|latexmk|fallo|!|Traceback|  File|[A-Za-z]*Error)" || true
+}
+
+articulo() {
+    log "articulo -> Articulo/main.pdf"
+    tools/ns_py.sh -m recon.articulo 2>&1 | grep -E "^(->|Traceback|  File|[A-Za-z]*Error)" || true
+    (cd "$ROOT/Articulo" && latexmk -pdf -interaction=nonstopmode -halt-on-error main.tex >/dev/null 2>&1) \
+        && log "articulo OK: Articulo/main.pdf" \
+        || { log "articulo FALLO (Articulo/main.log):"; grep -A3 "^!" "$ROOT/Articulo/main.log" | head -12; return 1; }
+}
+
 estado() { tools/ns_py.sh -m recon.estado 2>/dev/null; }
 
 fondo() {
@@ -224,8 +262,11 @@ main() {
         modelo) [ $# -ge 1 ] || die "uso: ./run.sh modelo <ruta.usd|clave> [opciones]"; simular modelo "$@" ;;
         lote) [ $# -ge 1 ] || die "uso: ./run.sh lote <carpeta> [opciones]"; lote "$@" ;;
         objetos) objetos "$@" ;;
+        pares) pares "$@" ;;
         limpiar) for c in "$@"; do limpiar "$c"; done ;;
         informe) informe ;;
+        reporte) reporte ;;
+        articulo) articulo ;;
         entrada) for c in "$@"; do entrada "$c"; done ;;
         profundidad|fotogrametria|gaussian|nerf) for c in "$@"; do tecnica "$cmd" "$c"; done ;;
         evaluar) for c in "$@"; do evaluar "$c"; done ;;

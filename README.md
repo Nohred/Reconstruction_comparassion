@@ -30,11 +30,11 @@ rehace) y las que usan la GPU esperan su turno. Las largas se lanzan con `fondo`
 
 ```bash
 # 1. Captura real -> su gemelo sintético (mismas poses) y reconstrucción de ambas
-./run.sh gemelo Captura_real/bunnny
-./run.sh fondo reconstruir real/bunnny
-./run.sh fondo reconstruir sintetica/bunnny
+./run.sh gemelo Captura_real/bunny_x200
+./run.sh fondo reconstruir real/bunny_x200
+./run.sh fondo reconstruir sintetica/bunny_x200
 
-# 2. Cualquier modelo USD/USDZ: plantilla de bunnny con variabilidad aleatoria
+# 2. Cualquier modelo USD/USDZ: plantilla de bunny_x200 con variabilidad aleatoria
 ./run.sh modelo ~/Escritorio/3D_reconstruction/3D_Models/sneaker.usdz          # 170 mm por defecto
 ./run.sh modelo mi_pieza.usd --tamano-mm 120 --semilla 4 --nombre pieza_s4
 ./run.sh fondo reconstruir sintetica/sneaker
@@ -47,6 +47,8 @@ rehace) y las que usan la GPU esperan su turno. Las largas se lanzan con `fondo`
 # 4. Solo re-evaluar / regenerar el informe (segundos; p. ej. tras cambiar configs/recon.yaml limpieza)
 ./run.sh evaluar sintetica/caesar
 ./run.sh informe                    # -> Resultados/evaluacion/informe.md
+./run.sh reporte                    # -> Resultados/reporte/reporte.pdf (LaTeX: tabla detallada real vs sintético)
+./run.sh articulo                   # -> Articulo/main.pdf (borrador IEEE TIM; figuras y tablas se regeneran)
 
 ./run.sh estado                     # avance y Chamfer por captura y técnica
 tail -f logs/fondo_*.log            # seguir un trabajo en segundo plano
@@ -58,7 +60,7 @@ fotogrametría ~20–30 min, gaussian ~20–40 min, nerf ~30–60 min.
 
 ## Variabilidad de las capturas sintéticas (`modelo`)
 
-La plantilla es `Captura_real/bunnny` (rig, intrínsecos, 16 paradas). En cada captura:
+La plantilla es `Captura_real/bunny_x200` (rig, intrínsecos, 16 paradas). En cada captura:
 - **Cámaras:** se re-montan una sola vez y quedan fijas durante toda la captura (azimut, elevación,
   distancia, puntería y roll).
 - **Base:** gira en cada parada con el ángulo nominal k·22.5° más ruido (σ = 1.2°, máx. 3°, medido en la
@@ -86,11 +88,12 @@ de la limpieza y del error por punto. Todas las nubes se tratan igual (`configs/
      ROI, donde nunca hay objeto. Ahí se mide además el grosor del piso reconstruido, que en NeRF/3DGS
      queda "grueso". Se corta en max(5 mm, grosor + 1 mm).
    - **Outliers estadísticos.**
-   - **Clusters flotantes:** se queda el mayor y los grandes que están a menos de 15 mm de él. El
-     resto son flotantes o restos del piso.
+   - **Clusters flotantes:** se queda el mayor de los que tocan el piso (el objeto está apoyado) y los
+     grandes que están a menos de 15 mm de él. El resto son flotantes o restos del piso.
 2. **GT:** la malla del objeto en el marco del tablero, menos la franja junto a su base. Esa franja
    no es observable y se excluye a la misma altura del corte del piso de cada técnica. En una captura
-   real, la malla del gemelo se registra sobre la nube de profundidad.
+   real, la malla del gemelo se registra (ICP de 4 GDL: x, y, z, yaw) sobre cada técnica y se usa la
+   pose de consenso (menor error mediano en el conjunto); la misma pose vale para las 4 técnicas.
 3. **Métricas (mm):**
    - precisión (nube → malla);
    - completitud (GT → nube);
@@ -100,6 +103,21 @@ de la limpieza y del error por punto. Todas las nubes se tratan igual (`configs/
 
 Para otro objeto: añadirlo a `configs/objects.yaml` (o pasar la ruta del USD) y correr
 `./run.sh fondo objetos <clave>`; la evaluación y el informe salen solos.
+
+## Capturas reales vs su gemelo sintético
+
+`Captura_real/` tiene 5 capturas (bunny_x200, bunny_x100, cesar, artefacto, P1). Cada una se reproduce
+con su gemelo (mismas poses de cámara y de la base) y las dos se reconstruyen con las 4 técnicas:
+
+```
+./run.sh fondo pares                 # todas las de Captura_real/ (o: ./run.sh fondo pares cesar P1)
+```
+
+El objeto y el material del gemelo salen de `session.json["objeto"]` vía `configs/objects.yaml: reales`
+(artefacto = PI2 en PLA beige, P1 = `Objects/P1.usd` en PETG gris). Para una captura real nueva: agregar
+su `objeto` en `reales` (y el material en `configs/scene.yaml` si hace falta) y correr `pares <captura>`.
+El informe agrega la sección *Real vs sintético*: Chamfer y F@2mm real / sintético por técnica, la
+diferencia media y `figuras/real_vs_sintetica.png`.
 
 ## Usar la entrada con otras herramientas
 

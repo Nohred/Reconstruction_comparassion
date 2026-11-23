@@ -83,6 +83,8 @@ limpieza:
     min_puntos: 5
     min_fraccion: 0.02             # clusters mas chicos (fraccion de puntos) = flotantes
     union_mm: 15.0                 # cluster grande pero a mas de esto del objeto = flotante
+    contacto_mm: 10.0              # semilla = el mayor cluster con su punto mas bajo a menos de esto
+                                   # del corte del piso (sabanas de flotantes de 3DGS > objeto chico)
 
 evaluacion:
   muestras_gt: 300000
@@ -94,10 +96,43 @@ evaluacion:
   # se usa para TODAS las tecnicas. Ademas se reporta cada tecnica con ICP propio.
   registro_real:
     yaw_paso_deg: 15
-    icp_dist_mm: [15.0, 5.0, 2.0]
+    icp_dist_mm: [15.0, 5.0, 2.0]  # ICP de 4 GDL (x, y, z, yaw): el objeto apoyado no se inclina
+    icp_iter: 30                   # iteraciones por distancia
   icp_por_tecnica_mm: [5.0, 2.0]
 
 informe:                           # recon/informe.py -> Resultados/<dir>/informe.md + figuras/
   dir: evaluacion
   puntos_figura: 40000             # submuestreo por nube en las figuras
   semilla: 0
+
+reporte:                           # recon/reporte.py -> Resultados/<dir>/reporte.tex (+ .pdf con latexmk)
+  dir: reporte
+  titulo: "Reconstrucci\\'on 3D: capturas reales vs gemelo sint\\'etico"
+  excluir: {}                      # {captura: motivo} para dejar pares fuera del reporte
+  tecnicas: [nerf, gaussian, fotogrametria, profundidad]
+  metricas:                        # clave de metricas.json sin_icp; mejor = menor|mayor; delta = columna real - sint
+    - {clave: chamfer_mm, nombre: "Chamfer", unidad: mm, mejor: menor, delta: true, fmt: "{:.2f}"}
+    - {clave: precision_mediana_mm, nombre: "Precis. med.", unidad: mm, mejor: menor, delta: false, fmt: "{:.2f}"}
+    - {clave: completitud_mediana_mm, nombre: "Complet. med.", unidad: mm, mejor: menor, delta: false, fmt: "{:.2f}"}
+    - {clave: hausdorff_p95_mm, nombre: "Haus. p95", unidad: mm, mejor: menor, delta: false, fmt: "{:.1f}"}
+    - {clave: fscore_1mm, nombre: "F@1mm", unidad: "", mejor: mayor, delta: false, fmt: "{:.2f}"}
+    - {clave: fscore_2mm, nombre: "F@2mm", unidad: "", mejor: mayor, delta: true, fmt: "{:.2f}"}
+    - {clave: fscore_5mm, nombre: "F@5mm", unidad: "", mejor: mayor, delta: false, fmt: "{:.2f}"}
+  icp_destacar_mm: 3.0             # observacion si el ICP mueve la real mas que esto (desfase de marco)
+  compilar: [latexmk, -pdf, -interaction=nonstopmode, -halt-on-error]
+
+articulo:                          # recon/articulo.py -> Articulo/figuras/*.pdf + Articulo/tablas/*.tex
+  dir: Articulo
+  mediciones: Articulo/datos/mediciones_impresion.yaml
+  capturas: [bunny_x100, bunny_x200, artefacto, P1, cesar]   # orden en tablas y figuras
+  nombres: {bunny_x100: "Bunny-S", bunny_x200: "Bunny-L", artefacto: "PI2", P1: "P1", cesar: "Caesar"}
+  materiales: {pla_beige: "PLA beige", pla_glow: "PLA glow (transl.)", petg_gris: "PETG grey"}
+  tecnicas: {nerf: "NeRF", gaussian: "3DGS", fotogrametria: "MVS", profundidad: "RGB-D"}
+  gemelo_camara: media             # foto real vs gemelo
+  gemelo_parada: stop_00
+  gemelo_recorte_px: [300, 650, 380, 900]   # y0, y1, x0, x1 sobre 1280x720 (tablero y objeto)
+  limpieza_captura: [real, artefacto]       # figura de limpieza
+  error_captura: artefacto                  # figura de error real vs gemelo
+  puntos_figura: 30000
+  semilla: 0
+  validacion_logs: {bunny_x200: bunnny}     # nombre del log de validacion si difiere (logs/<n>_validacion.log)

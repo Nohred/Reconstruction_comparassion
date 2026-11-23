@@ -1,0 +1,21 @@
+# Mediciones con calibrador de la pieza impresa vs su CAD (transcritas de mediciones_temp.jpeg, 2026-11-23).
+# Los rasgos (base 100x70, cilindro 20x33, cupula, escalones 13/18/23, rampa, barreno, muesca) son los de
+# Objects/P1.usd (100x70x33 mm). Cada par "a / b" se separa en dos mediciones.
+pieza: P1
+instrumento: calibrador (resolucion 0.1 mm)
+rasgos:
+  - {rasgo: "Base length",            nominal: 100.0, medido: 100.0}
+  - {rasgo: "Base width",             nominal: 70.0,  medido: 70.0}
+  - {rasgo: "Base height",            nominal: 8.0,   medido: 8.3,  nota: "first-layer squish"}
+  - {rasgo: "Step height 1",          nominal: 13.0,  medido: 13.0}
+  - {rasgo: "Step height 2",          nominal: 18.0,  medido: 18.0}
+  - {rasgo: "Step height 3",          nominal: 23.0,  medido: 23.0}
+  - {rasgo: "Step width",             nominal: 16.0,  medido: 16.2, nota: "wall over-extrusion"}
+  - {rasgo: "Step depth",             nominal: 30.0,  medido: 30.2, nota: "wall over-extrusion"}
+  - {rasgo: "Cylinder diameter",      nominal: 20.0,  medido: 20.0}
+  - {rasgo: "Cylinder height",        nominal: 33.0,  medido: 33.4}
+  - {rasgo: "Dome height",            nominal: 23.0,  medido: 23.1}
+  - {rasgo: "Ramp height",            nominal: 28.0,  medido: 27.7, nota: "45 deg sharp edge rounded"}
+  - {rasgo: "Bore diameter",          nominal: 10.0,  medido: 9.5,  nota: "holes print undersized in FDM"}
+  - {rasgo: "Notch length",           nominal: 12.0,  medido: 12.0}
+  - {rasgo: "Notch width",            nominal: 6.0,   medido: 6.0}

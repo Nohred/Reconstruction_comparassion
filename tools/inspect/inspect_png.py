@@ -1,7 +1,7 @@
 """Resumen compacto de imagenes PNG (color o profundidad). Solo lectura.
 
-    tools/inspect/run.sh inspect_png.py Captura_real/bunnny/alta/stop_00/*.png \
-        --calib Captura_real/bunnny/alta/calib.json
+    tools/inspect/run.sh inspect_png.py Captura_real/bunny_x200/alta/stop_00/*.png \
+        --calib Captura_real/bunny_x200/alta/calib.json
 
 Una imagen uint16 de 1 canal se trata como profundidad: se reportan valores en metros
 usando depth_scale (de --depth-scale o de depth_scale_m en --calib) y % de pixeles invalidos (0).

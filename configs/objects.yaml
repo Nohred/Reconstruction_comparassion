@@ -42,3 +42,24 @@ objects:
     up_axis: Z
     tamano_mm: null
     material: pla_gris
+  p1:                                     # pieza P1 (100x70x33 mm), distinta de la PI2
+    usd: Objects/P1.usd
+    real_units_m: 0.001
+    up_axis: Z
+    tamano_mm: null
+    material: petg_gris
+  bunny_x100:                             # mitad de escala (86x67x83 mm)
+    usd: Objects/stanford_bunny.usd
+    real_units_m: 0.001
+    up_axis: Z
+    tamano_mm: null
+    material: pla_beige
+
+# Capturas reales: session.json["objeto"] -> objeto de arriba + cambios (material con el que se
+# imprimio). Las usa el gemelo (./run.sh gemelo Captura_real/<captura>); 'objetos' no las recorre.
+reales:
+  bunnyx200: {objeto: bunny, material: pla_beige}
+  bunny_x100: {objeto: bunny_x100, material: pla_beige}
+  cesar: {objeto: caesar, material: pla_glow}
+  artefacto: {objeto: artefacto_pi2, material: pla_beige}
+  P1: {objeto: p1, material: petg_gris}

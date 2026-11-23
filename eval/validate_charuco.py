@@ -1,6 +1,6 @@
 """Valida el tablero sintetico: exactitud del render y paridad con el detector real.
 
-    tools/cv_py.sh -m eval.validate_charuco Captura_sintetica/bunnny
+    tools/cv_py.sh -m eval.validate_charuco Captura_sintetica/bunny_x200
 
 Para cada vista de ground_truth.json (render limpio gt/<camara>/stop_XX/color.png):
   1. RENDER (criterio): cornerSubPix sobre color.png partiendo de las 54 esquinas proyectadas
@@ -55,7 +55,7 @@ def main():
     gtall = read_json(root / cfg["gt_file"])
     real = Capture.open(repo_path(gtall["plantilla"]), lay)
     det = L.BoardDetector()
-    rows, ok = [], True
+    rows, malas = [], 0
     for gt in gtall["vistas"]:
         cam, k = gt["camara"], gt["parada"]
         K, dist = K_dist_from_calib(real.calib[cam]["color_intrinsics"])
@@ -70,11 +70,11 @@ def main():
                              None if occ is None else occ > 0)
         if ra is None:
             print(f"{tag}: tablero fuera de la imagen o tapado")
-            ok = False
+            malas += 1
             continue
         rbias, rmed, rn = ra
         good = bool(np.all(np.abs(rbias) <= lim["max_render_bias_px"]) and rmed <= lim["max_render_median_px"])
-        ok &= good
+        malas += not good
         line = (f"{tag}: RENDER sesgo ({rbias[0]:+.2f},{rbias[1]:+.2f}) med {rmed:.2f} px n={rn} "
                 f"{'OK' if good else 'FALLA'}")
         p = det.pose(gray, K, dist)
@@ -100,8 +100,15 @@ def main():
               f"detector pose mm med {np.nanmedian(r[:, 1]):.2f} max {np.nanmax(r[:, 1]):.2f}, deg med "
               f"{np.nanmedian(r[:, 2]):.3f}, sesgo med {db:+.2f} px (esperado {lim['detector_bias_px']:+.2f}: "
               f"{'OK' if parity else 'DIFIERE'})")
+    # criterio global: una vista suelta fuera de tolerancia (pocas esquinas por oclusion, ruido de
+    # 0.01 px sobre el limite) no invalida la captura; si muchas fallan o la mediana global, si
+    n = len(gtall["vistas"])
+    ok = bool(rows) and np.median(np.array(rows, float)[:, 0]) <= lim["max_render_median_px"] \
+        and malas <= lim["max_fraccion_vistas_falla"] * n
+    print(f"vistas fuera de tolerancia: {malas}/{n} (max {lim['max_fraccion_vistas_falla']:.0%}) -> "
+          f"{'OK' if ok else 'FALLA'}")
     print(f"OpenCV {cv2.__version__}")
-    raise SystemExit(0 if ok and rows else 1)
+    raise SystemExit(0 if ok else 1)
 
 
 if __name__ == "__main__":

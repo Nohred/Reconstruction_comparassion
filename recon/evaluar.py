@@ -1,7 +1,7 @@
 """Evalua las 4 tecnicas de una captura contra la malla GT (marco del tablero, mm).
 
-    tools/ns_py.sh -m recon.evaluar Reconstrucciones/sintetica/bunnny
-    tools/ns_py.sh -m recon.evaluar Reconstrucciones/real/bunnny [--gt otra_malla_rev.ply]
+    tools/ns_py.sh -m recon.evaluar Reconstrucciones/sintetica/bunny_x200
+    tools/ns_py.sh -m recon.evaluar Reconstrucciones/real/bunny_x200 [--gt otra_malla_rev.ply]
 
 GT: gt/objeto_rev.ply de la captura sintetica (en la real, la del gemelo con el mismo nombre en
 Captura_sintetica/, cuya colocacion no coincide con la real: se registra UNA vez sobre la
@@ -91,29 +91,84 @@ def icp(P, gt_pcd, dists_mm, o3d, T0=np.eye(4)):
     return T
 
 
+def rot_z(a):
+    return np.array([[np.cos(a), -np.sin(a), 0], [np.sin(a), np.cos(a), 0], [0, 0, 1]])
+
+
+def icp_4dof(G, tree, target_P, T, dists_mm, iters):
+    """ICP punto a punto restringido a x, y, z y yaw (el objeto esta apoyado en el tablero: no se
+    inclina). G: GT (m), tree: cKDTree de target_P. Devuelve T (4x4)."""
+    for d in dists_mm:
+        for _ in range(iters):
+            S = G @ T[:3, :3].T + T[:3, 3]
+            dist, j = tree.query(S, distance_upper_bound=d * MM, workers=-1)
+            k = np.isfinite(dist)
+            if k.sum() < 10:
+                break
+            A, B = S[k], target_P[j[k]]
+            ca, cb = A.mean(0), B.mean(0)
+            a, b = A[:, :2] - ca[:2], B[:, :2] - cb[:2]          # Procrustes 2D en xy -> yaw
+            ang = np.arctan2((a[:, 0] * b[:, 1] - a[:, 1] * b[:, 0]).sum(), (a * b).sum())
+            dT = np.eye(4)
+            dT[:3, :3] = rot_z(ang)
+            dT[:3, 3] = cb - dT[:3, :3] @ ca
+            T = dT @ T
+            if abs(ang) < 1e-5 and np.linalg.norm(cb - ca) < 1e-6:
+                break
+    return T
+
+
 def register_gt_to(target_P, gt_pcd, rcfg, o3d):
-    """Pose del GT sobre una nube real: barrido de yaw (eje vertical por el centroide) + ICP."""
+    """Pose del GT sobre una nube real: barrido de yaw + ICP de 4 GDL (x, y, z, yaw; sin inclinar).
+
+    Puntaje = fraccion de la nube real a < umbral final del GT (la nube real es lo observado; el GT
+    tiene base y partes ocultas, su fraccion cubierta no sirve para comparar poses)."""
+    from scipy.spatial import cKDTree
+
     rc = rcfg["evaluacion"]["registro_real"]
     G = np.asarray(gt_pcd.points)
-    tgt = o3d.geometry.PointCloud(o3d.utility.Vector3dVector(target_P))
-    tgt.estimate_normals(o3d.geometry.KDTreeSearchParamHybrid(radius=0.006, max_nn=30))
+    tree = cKDTree(target_P)
     cg, ct = G.mean(0), target_P.mean(0)
+    dfin = rc["icp_dist_mm"][-1] * MM
     best = None
     for yaw in np.arange(0, 360, rc["yaw_paso_deg"]):
-        a = np.radians(yaw)
-        R = np.array([[np.cos(a), -np.sin(a), 0], [np.sin(a), np.cos(a), 0], [0, 0, 1]])
         T = np.eye(4)
-        T[:3, :3] = R
-        T[:3, 3] = np.array([ct[0], ct[1], cg[2]]) - R @ cg
-        for d in rc["icp_dist_mm"]:
-            r = o3d.pipelines.registration.registration_icp(
-                gt_pcd, tgt, d * MM, T, o3d.pipelines.registration.TransformationEstimationPointToPlane())
-            T = r.transformation
-        score = (r.fitness, -r.inlier_rmse)
+        T[:3, :3] = rot_z(np.radians(yaw))
+        T[:3, 3] = np.array([ct[0], ct[1], cg[2]]) - T[:3, :3] @ cg
+        T = icp_4dof(G, tree, target_P, T, rc["icp_dist_mm"], rc["icp_iter"])
+        S = G @ T[:3, :3].T + T[:3, 3]
+        e = cKDTree(S).query(target_P, workers=-1)[0]
+        score = float((e < dfin).mean())
         if best is None or score > best[0]:
-            best = (score, T, yaw)
-    (fit, nrmse), T, yaw = best
-    return T, dict(yaw_inicial_deg=float(yaw), fitness=float(fit), rmse_mm=float(-nrmse / MM))
+            best = (score, T, yaw, float(np.sqrt(np.mean(e[e < dfin] ** 2)) / MM) if (e < dfin).any() else np.nan,
+                    float((tree.query(S, workers=-1)[0] < dfin).mean()))
+    score, T, yaw, rmse, fit_gt = best
+    return T, dict(yaw_inicial_deg=float(yaw), fitness=score, fitness_gt=fit_gt, rmse_mm=rmse,
+                   metodo="4 GDL (x, y, z, yaw)")
+
+
+def register_consensus(rdir, roi, lcfg, mesh, rcfg, o3d):
+    """Pose del GT en una captura real: se registra (4 GDL) sobre la nube limpia de CADA tecnica y se
+    elige la pose con menor mediana (entre tecnicas) del error mediano nube -> GT. Un material que
+    sesga una tecnica (p. ej. PLA translucido en la profundidad de la L515) no arrastra a las demas."""
+    G = mesh.sample_points_uniformly(50000)
+    clouds = {}
+    for t in TECNICAS:
+        f = rdir / t / "resultado.ply"
+        if f.exists():
+            clouds[t], _ = clean_cloud(np.asarray(o3d.io.read_point_cloud(str(f)).points), roi, lcfg, o3d)
+    if not clouds:
+        raise SystemExit("captura real: no hay nubes para registrar el GT")
+    cand, score = {}, {}
+    for t, P in clouds.items():
+        T, info = register_gt_to(P, G, rcfg, o3d)
+        m = o3d.geometry.TriangleMesh(mesh).transform(T)
+        cand[t] = (T, info)
+        score[t] = float(np.median([np.median(point_to_mesh_mm(Q, m, o3d)) for Q in clouds.values()]))
+    ref = min(score, key=score.get)
+    T, info = cand[ref]
+    tr = {t: float(np.linalg.norm((c[0][:3, 3] - T[:3, 3])) / MM) for t, c in cand.items()}
+    return T, dict(info, referencia=ref, candidatas_mm=score, distancia_poses_mm=tr)
 
 
 def update_summary(results_root):
@@ -166,14 +221,12 @@ def main():
     res = dict(fuente=fuente, captura=captura, gt=str(gt_path.relative_to(repo_path("."))),
                perfil_reconstruccion={}, tecnicas={})
     if fuente == "real":
-        ref = rdir / "profundidad" / "resultado.ply"
-        if not ref.exists():
-            raise SystemExit("captura real: falta profundidad/resultado.ply para registrar el GT")
-        P, _ = clean_cloud(np.asarray(o3d.io.read_point_cloud(str(ref)).points), roi, lcfg, o3d)
-        T, rinfo = register_gt_to(P, mesh.sample_points_uniformly(50000), rcfg, o3d)
+        T, rinfo = register_consensus(rdir, roi, lcfg, mesh, rcfg, o3d)
         mesh.transform(T)
-        res["registro_gt"] = dict(rinfo, T_tablero_m=T.tolist(), referencia="profundidad")
-        print(f"GT registrado sobre profundidad: fitness {rinfo['fitness']:.2f}, rmse {rinfo['rmse_mm']:.2f} mm")
+        res["registro_gt"] = dict(rinfo, T_tablero_m=T.tolist())
+        print(f"GT registrado (consenso, referencia {rinfo['referencia']}): fitness {rinfo['fitness']:.2f}, "
+              f"rmse {rinfo['rmse_mm']:.2f} mm | error mediano por pose candidata "
+              + ", ".join(f"{k} {v:.2f}" for k, v in rinfo["candidatas_mm"].items()))
     gt_all = mesh.sample_points_uniformly(ecfg["muestras_gt"])
     gt_all.estimate_normals(o3d.geometry.KDTreeSearchParamHybrid(radius=0.005, max_nn=30))
     G = np.asarray(gt_all.points)

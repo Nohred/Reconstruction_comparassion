@@ -1,0 +1,82 @@
+% Seccion de resultados. Numeros de tablas/numeros.tex (generados); los citados por objeto vienen de
+% tablas/resultados.tex: revisarlos si se re-evalua.
+\begin{table*}[!t]
+\centering
+\caption{Per-object results without ICP. R = real capture, T = digital twin, $\Delta$ = R $-$ T. CD: Chamfer
+distance; Acc./Comp.: median accuracy/completeness; F@$\tau$: F-score at $\tau$~mm; H95: 95th-percentile
+Hausdorff distance. Bold: best method for that object, domain and metric.}
+\label{tab:resultados}
+\resizebox{\textwidth}{!}{\scriptsize\input{tablas/resultados.tex}}
+\end{table*}
+
+\begin{table}[!t]
+\centering\footnotesize
+\caption{Mean over the \nobj\ objects. R/T: ratio of real to twin CD. ``Real + ICP'': CD after a
+per-method 4-DOF ICP and mean ICP translation (mm). Time: median wall-clock per capture (RTX 2000 Ada).}
+\label{tab:resumen}
+\resizebox{\columnwidth}{!}{\input{tablas/resumen.tex}}
+\end{table}
+
+\subsection{Accuracy of each method in each domain}
+Table~\ref{tab:resultados} lists all metrics per object, and Table~\ref{tab:resumen} their means. In the
+twin, RGB-D fusion is by far the most accurate method (mean CD \rgbdS~mm, F@2~=~\rgbdFS), followed by NeRF
+(\nerfS~mm), 3DGS (\gsS~mm) and MVS (\mvsS~mm). On the real captures the ranking changes: NeRF is the most
+accurate (\nerfR~mm, F@2~=~\nerfFR), 3DGS (\gsR~mm) and MVS (\mvsR~mm) are tied, and RGB-D fusion becomes the
+least accurate method (\rgbdR~mm, F@2~=~\rgbdFR). Fig.~\ref{fig:fscore} shows the same pattern over all
+thresholds: the twin RGB-D curve saturates below 1~mm, whereas the real one reaches 0.9 only at about 10~mm.
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=\columnwidth]{figuras/fscore.pdf}
+\caption{F-score versus threshold, averaged over the \nobj\ objects, for the real captures (solid) and their
+digital twins (dashed).}
+\label{fig:fscore}
+\end{figure}
+
+\subsection{Sim-to-real gap}
+Fig.~\ref{fig:brecha} shows, for every object and method, the CD on the twin and on the real capture. For
+the three image-based methods the twin is a good predictor of the real error: the mean gap is \nerfD~mm
+for NeRF, \gsD~mm for 3DGS and \mvsD~mm for MVS (real-to-twin ratios of 1.0--1.2). Individual gaps stay
+within $\pm 0.7$~mm, except for NeRF and 3DGS on the dark PETG part P1 ($+0.73$ and $+0.88$~mm) and 3DGS
+on the translucent Caesar ($+0.72$~mm) (Table~\ref{tab:resultados}), where the real appearance is less favorable than the rendered one. The gap is
+not always positive: 3DGS is less accurate on several twins than on the real captures (e.g., Bunny-L,
+3.07 versus 2.49~mm), because its floaters depend on the rendered background and lighting, which are
+approximations.
+
+RGB-D fusion behaves differently: its mean real CD is ten times the twin value (gap \rgbdD~mm). The
+per-method ICP explains most of this gap. Image-based clouds move only 0.1--1.3~mm (0.3--0.7~mm on average) when registered
+individually to the CAD, i.e., they are consistent with the board frame defined by the ChArUco poses. The
+RGB-D clouds move \rgbdshift~mm on average (2.5--6.4~mm for the opaque prints and 16.1~mm for Caesar), and
+after this alignment the CD drops to 1.2--1.9~mm for the opaque objects, comparable to the image-based
+methods. The dominant real RGB-D error is therefore a rigid offset between the L515 depth and the
+photogrammetric frame, not the shape of the fused surface.
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=\textwidth]{figuras/brecha.pdf}
+\caption{Chamfer distance on the digital twin (hollow) and on the real capture (filled) for each object and
+method. Note the different horizontal scales.}
+\label{fig:brecha}
+\end{figure*}
+
+\subsection{Spatial distribution of the error}
+Fig.~\ref{fig:error} shows the per-point error for the PI2 artifact. On both domains, the image-based
+methods concentrate their error at concave features (the ring, the bores, the steps) and at the vertical
+walls, where fewer views observe the surface; MVS additionally leaves gaps on low-texture surfaces. The
+real RGB-D cloud exhibits an almost uniform error, the signature of a rigid offset, whereas its twin is
+accurate everywhere.
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=\textwidth]{figuras/error.pdf}
+\caption{Cleaned clouds of the PI2 artifact colored by distance to the CAD mesh (light gray), real capture
+(top) and digital twin (bottom), side view.}
+\label{fig:error}
+\end{figure*}
+
+\subsection{Effect of the material}
+The translucent glow-in-the-dark PLA of Caesar is the hardest case for every method in both domains, but
+especially for real RGB-D fusion: the near-infrared laser of the L515 penetrates the material, producing a
+16~mm depth bias and a residual 9.0~mm CD even after ICP, an effect that the twin, which renders an opaque
+material, cannot reproduce. The dark PETG of P1 increases the gap of the radiance-field methods (NeRF
+$+0.73$~mm, 3DGS $+0.88$~mm) but not that of MVS ($-0.21$~mm).

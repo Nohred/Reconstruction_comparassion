@@ -1,6 +1,6 @@
 """Valida la geometria del render del gemelo contra su ground truth (sin detector).
 
-    tools/cv_py.sh -m eval.validate_geometry Captura_sintetica/bunnny
+    tools/cv_py.sh -m eval.validate_geometry Captura_sintetica/bunny_x200
 
 Por vista de gt/<camara>/stop_XX/:
   PLANO   : depth.png perfecta retroproyectada (K de profundidad) y llevada al marco del tablero

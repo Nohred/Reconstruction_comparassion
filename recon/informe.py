@@ -7,6 +7,7 @@ Resultados/evaluacion/ (configs/recon.yaml informe):
   informe.md                       metodo, tablas resumen y por captura, enlaces a figuras
   figuras/resumen_chamfer.png      Chamfer por captura y tecnica (sin ICP)
   figuras/resumen_fscore.png       F-score vs umbral, una grafica por captura
+  figuras/real_vs_sintetica.png    cada captura real frente a su gemelo sintetico (si existen ambas)
   figuras/<fuente>_<captura>_limpieza.png   que quito la limpieza (piso / outliers / flotantes)
   figuras/<fuente>_<captura>_error.png      nube limpia coloreada por distancia al GT (2 vistas)
 """
@@ -101,6 +102,66 @@ def fig_fscore(evals, path, plt):
     fig.legend(*axs[0][0].get_legend_handles_labels(), ncol=4, loc="outside upper left")
     fig.savefig(path, dpi=130, bbox_inches="tight")
     plt.close(fig)
+
+
+def pares(evals):
+    """[(captura, real, sintetica)] de las capturas evaluadas en ambas fuentes (gemelos)."""
+    by = {(m["fuente"], m["captura"]): m for m in evals}
+    return [(c, by[("real", c)], by[("sintetica", c)]) for f, c in sorted(by) if f == "real" and ("sintetica", c) in by]
+
+
+PAR_METRICAS = [("chamfer_mm", "Chamfer (mm), menor = mejor"), ("fscore_2mm", "F@2mm, mayor = mejor")]
+
+
+def fig_pares(prs, path, plt):
+    """Dumbbell por tecnica: sintetica (hueco) -> real (lleno) para cada captura."""
+    fig, axs = plt.subplots(len(PAR_METRICAS), len(TECNICAS), figsize=(11, 0.45 * len(prs) * 2 + 2.4),
+                            sharey=True, sharex="row", squeeze=False, layout="constrained")
+    ys = np.arange(len(prs))[::-1]
+    for i, (key, xl) in enumerate(PAR_METRICAS):
+        for j, t in enumerate(TECNICAS):
+            ax = axs[i][j]
+            for y, (c, mr, ms) in zip(ys, prs):
+                vr = mr["tecnicas"].get(t, {}).get("sin_icp", {}).get(key)
+                vs = ms["tecnicas"].get(t, {}).get("sin_icp", {}).get(key)
+                if vr is None or vs is None:
+                    continue
+                ax.plot([vs, vr], [y, y], color=GRID, lw=2, zorder=1)
+                ax.scatter([vs], [y], s=46, facecolor=SURF, edgecolor=SERIE[t], lw=2, zorder=3,
+                           label="sintetica (gemelo)" if y == ys[0] else None)
+                ax.scatter([vr], [y], s=46, color=SERIE[t], edgecolor=SURF, lw=1.5, zorder=3,
+                           label="real" if y == ys[0] else None)
+            ax.set_yticks(ys)
+            ax.set_yticklabels([c for c, _, _ in prs])
+            ax.grid(axis="y", visible=False)
+            ax.set_xlabel(xl, fontsize=8)
+            if i == 0:
+                ax.set_title(t, fontsize=9, loc="left")
+    h = [plt.Line2D([], [], marker="o", ls="", mfc=SURF, mec=TXT2, mew=2, ms=7),
+         plt.Line2D([], [], marker="o", ls="", color=TXT2, ms=7)]
+    fig.legend(h, ["sintetica (gemelo)", "real"], ncol=2, loc="outside upper left",
+               title="real vs su gemelo sintetico, por tecnica (sin ICP)", title_fontsize=10, alignment="left")
+    fig.savefig(path, dpi=130, bbox_inches="tight")
+    plt.close(fig)
+
+
+def tabla_pares(prs, key, f):
+    lines = ["| captura | " + " | ".join(f"{t} real / sint" for t in TECNICAS) + " |",
+             "|---|" + "---:|" * len(TECNICAS)]
+    gaps = {t: [] for t in TECNICAS}
+    for c, mr, ms in prs:
+        cells = []
+        for t in TECNICAS:
+            rr, rs = mr["tecnicas"].get(t, {}), ms["tecnicas"].get(t, {})
+            vr, vs = rr.get("sin_icp", {}).get(key), rs.get("sin_icp", {}).get(key)
+            star = "*" if "rapido" in (perfil(rr), perfil(rs)) else ""
+            if vr is not None and vs is not None:
+                gaps[t].append(vr - vs)
+            cells.append(f"{fmt(vr, f)} / {fmt(vs, f)}{star}")
+        lines.append(f"| {c} | " + " | ".join(cells) + " |")
+    lines.append("| **media real - sint** | " + " | ".join(
+        fmt(float(np.mean(g)) if g else None, "{:+" + f[2:]) for g in gaps.values()) + " |")
+    return lines
 
 
 def views(P):
@@ -263,12 +324,18 @@ def main():
           f"3. **Outliers estadisticos**: distancia media a {lcfg['estadistico']['vecinos']} vecinos > media + "
           f"{lcfg['estadistico']['std']:g} sigma.",
           f"4. **Clusters flotantes**: DBSCAN (eps {lcfg['clusters']['eps_mm']:g} mm sobre la nube a "
-          f"{lcfg['clusters']['voxel_mm']:g} mm); se descartan los clusters con menos del "
-          f"{100 * lcfg['clusters']['min_fraccion']:g}% de los puntos.", "",
+          f"{lcfg['clusters']['voxel_mm']:g} mm); semilla = el mayor cluster que toca el piso (a < "
+          f"{lcfg['clusters']['contacto_mm']:g} mm del corte); se suman los que tengan >= "
+          f"{100 * lcfg['clusters']['min_fraccion']:g}% de los puntos y esten a < {lcfg['clusters']['union_mm']:g} mm; "
+          "el resto son flotantes.", "",
           "El GT es la malla del objeto colocada en la escena sintetica, muestreada uniformemente; la franja "
           "junto a su base (apoyada en el tablero, no observable) se excluye hasta la **misma altura del "
-          "corte del piso de cada tecnica**, para no penalizar la completitud por el corte. En capturas reales el GT se registra una vez sobre la nube de "
-          "profundidad (barrido de yaw + ICP) y esa pose sirve para todas las tecnicas.", "",
+          "corte del piso de cada tecnica**, para no penalizar la completitud por el corte. En capturas reales la pose "
+          "del objeto no se conoce: el GT se registra (barrido de yaw + ICP de 4 GDL: x, y, z, yaw, sin inclinar) "
+          "sobre la nube limpia de CADA tecnica y se usa la pose con menor error mediano en el conjunto (consenso); "
+          "esa pose sirve para todas las tecnicas. El marco del tablero lo fijan las camaras de color (ChArUco), asi "
+          "que el consenso lo deciden las tecnicas RGB; un sesgo de la profundidad de las L515 aparece como error de "
+          "profundidad *sin ICP* (y desaparece *con ICP*).", "",
           "Metricas (mm): **precision** = distancia de cada punto reconstruido a la malla GT; **completitud** "
           "= distancia de cada punto del GT (muestreado) a la nube; **chamfer** = media de ambas medias; "
           "**F@t** = media armonica de la fraccion de puntos con precision < t y de GT con completitud < t. "
@@ -278,14 +345,27 @@ def main():
           "## Resumen", "", "Chamfer sin ICP (mm, menor = mejor):", "", *tabla_resumen(evals, "chamfer_mm", "{:.2f}"),
           "", "F-score a 2 mm sin ICP (mayor = mejor):", "", *tabla_resumen(evals, "fscore_2mm", "{:.3f}"), "",
           "![Chamfer](figuras/resumen_chamfer.png)", "", "![F-score](figuras/resumen_fscore.png)", ""]
+    prs = pares(evals)
+    if prs:
+        fig_pares(prs, figs / "real_vs_sintetica.png", plt)
+        md += ["## Real vs sintetico (gemelo)", "",
+               "Cada captura real se compara con su gemelo (`./run.sh gemelo`: mismas poses de camara y de la "
+               "base, mismo objeto, escala y material). Las dos se evaluan contra la MISMA malla GT; en la real va "
+               "registrada por consenso (ver Metodo). La diferencia real - sintetico mide lo que el gemelo "
+               "no reproduce (ruido y sesgo de las L515, iluminacion, material, calibracion).", "",
+               "Chamfer sin ICP (mm), real / sintetico:", "", *tabla_pares(prs, "chamfer_mm", "{:.2f}"), "",
+               "F@2mm sin ICP, real / sintetico:", "", *tabla_pares(prs, "fscore_2mm", "{:.3f}"), "",
+               "![real vs sintetico](figuras/real_vs_sintetica.png)", ""]
     for m in evals:
         tag = f"{m['fuente']}_{m['captura']}"
         print(f"figuras de {label(m)} ...")
         fig_limpieza(m, icfg, lcfg, o3d, figs / f"{tag}_limpieza.png", plt, rng)
         fig_error(m, icfg, ecfg, o3d, figs / f"{tag}_error.png", plt, rng)
         md += [f"## {label(m)}", "", f"GT: `{m['gt']}`" + (
-            f"; registrado sobre profundidad (fitness {m['registro_gt']['fitness']:.2f}, "
-            f"rmse {m['registro_gt']['rmse_mm']:.2f} mm)" if "registro_gt" in m else ""), "",
+            f"; registrado por consenso, pose de {m['registro_gt'].get('referencia', 'profundidad')} (fitness "
+            f"{m['registro_gt']['fitness']:.2f}, rmse {m['registro_gt']['rmse_mm']:.2f} mm; error mediano por pose "
+            "candidata: " + ", ".join(f"{k} {v:.2f}" for k, v in m['registro_gt'].get('candidatas_mm', {}).items())
+            + " mm)" if "registro_gt" in m else ""), "",
             *tabla_captura(m, um), "", "Plano del tablero ajustado por tecnica:", ""]
         for t in TECNICAS:
             p = (m["tecnicas"].get(t, {}).get("limpieza") or {}).get("plano")

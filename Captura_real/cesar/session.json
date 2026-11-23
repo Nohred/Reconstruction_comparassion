@@ -1,0 +1,643 @@
+{
+  "objeto": "cesar",
+  "notas": "PLA glow, persiana cerrada",
+  "inicio": "2026-11-17T15:39:13.700919",
+  "sdk": "2.54.2.5684",
+  "opencv": "4.10.0",
+  "parametros": {
+    "objeto": "cesar",
+    "paradas": 16,
+    "tol": 3.0,
+    "cuadros": 10,
+    "warmup": 45,
+    "salida": "capturas",
+    "notas": "PLA glow, persiana cerrada",
+    "reset": false,
+    "rig": "rig.json",
+    "ref": null
+  },
+  "camaras": [
+    {
+      "label": "baja",
+      "serial": "f1422302",
+      "firmware": "1.5.8.1",
+      "usb": "3.2",
+      "elevacion_deg": 16.81590660048349,
+      "distancia_mm": 447.5450248391527
+    },
+    {
+      "label": "media",
+      "serial": "f1420226",
+      "firmware": "1.5.8.1",
+      "usb": "3.2",
+      "elevacion_deg": 33.217891739084024,
+      "distancia_mm": 463.08412315155937
+    },
+    {
+      "label": "alta",
+      "serial": "f1421519",
+      "firmware": "1.5.8.1",
+      "usb": "3.2",
+      "elevacion_deg": 65.79217759920544,
+      "distancia_mm": 565.321737075528
+    }
+  ],
+  "referencia": "alta",
+  "rig": {
+    "fecha": "2026-11-17T15:02:07.517719",
+    "sdk": "2.54.2.5684",
+    "referencia": "f1420226",
+    "posiciones": 4,
+    "tablero": {
+      "squares_x": 10,
+      "squares_y": 7,
+      "square_mm": 24.0
+    },
+    "criterio_pose": {
+      "min_corners": 10,
+      "max_reproj_px": 1.0,
+      "min_filas": 3,
+      "min_columnas": 3
+    },
+    "nota": "p_color = R_rig_to_color @ p_rig + t; el marco del rig es el de color de la camara de referencia",
+    "camaras": {
+      "f1422302": {
+        "label": "baja",
+        "elevacion_deg": 16.799160578092565,
+        "distancia_mm": 438.8211879391378,
+        "R_rig_to_color": [
+          [
+            0.9542222958978204,
+            0.10097841238970912,
+            -0.2815371560607011
+          ],
+          [
+            -0.01900936230648826,
+            0.9598579998758903,
+            0.27984149838606315
+          ],
+          [
+            0.29849364173495274,
+            -0.26167915527513824,
+            0.9178374396037109
+          ]
+        ],
+        "t_rig_to_color_mm": [
+          129.63135006308022,
+          -134.94900503486355,
+          30.80078670644417
+        ],
+        "dispersion_max_deg": 0.1122237134981536,
+        "dispersion_max_mm": 0.9847145656868025,
+        "esquinas": [
+          35,
+          32,
+          34,
+          43
+        ],
+        "reproj_px": [
+          0.439093606571999,
+          0.4201549922777042,
+          0.4521737853504592,
+          0.4616677488689174
+        ]
+      },
+      "f1420226": {
+        "label": "media",
+        "elevacion_deg": 33.00665049428925,
+        "distancia_mm": 462.443121082705,
+        "R_rig_to_color": [
+          [
+            1.0,
+            1.6274025655800185e-16,
+            -2.127839222196549e-17
+          ],
+          [
+            -1.6274025655800193e-16,
+            0.9999999999999996,
+            -2.876125695588257e-16
+          ],
+          [
+            2.127839222196544e-17,
+            3.7674209536441696e-16,
+            1.0
+          ]
+        ],
+        "t_rig_to_color_mm": [
+          3.552713678800501e-15,
+          -1.7430501486614958e-13,
+          -1.5631940186722204e-13
+        ],
+        "dispersion_max_deg": 1.7075472925031877e-06,
+        "dispersion_max_mm": 7.507677471341538e-13,
+        "esquinas": [
+          50,
+          50,
+          50,
+          50
+        ],
+        "reproj_px": [
+          0.32332475250097686,
+          0.34625648464761627,
+          0.3853885012078601,
+          0.35450130110870853
+        ]
+      },
+      "f1421519": {
+        "label": "alta",
+        "elevacion_deg": 65.31782353064276,
+        "distancia_mm": 569.9600997722573,
+        "R_rig_to_color": [
+          [
+            0.9087189060410926,
+            -0.20106352893281262,
+            0.3657914804045672
+          ],
+          [
+            0.36972711620947424,
+            0.7944568588449542,
+            -0.48180925579905004
+          ],
+          [
+            -0.19373128127100875,
+            0.5730722090341602,
+            0.7962766063936579
+          ]
+        ],
+        "t_rig_to_color_mm": [
+          -155.62427158284922,
+          186.92423780079318,
+          171.0259979630492
+        ],
+        "dispersion_max_deg": 0.29318426628970573,
+        "dispersion_max_mm": 2.90659364111917,
+        "esquinas": [
+          50,
+          50,
+          50,
+          50
+        ],
+        "reproj_px": [
+          0.2111040208151068,
+          0.24453874907354087,
+          0.23483431322409973,
+          0.20233911270673313
+        ]
+      }
+    }
+  },
+  "paradas": [
+    {
+      "indice": 0,
+      "objetivo_deg": 0.0,
+      "medido_deg": 0.0,
+      "duracion_s": 23.7,
+      "repeticiones": 0,
+      "movimiento_sin_resolver": false,
+      "camaras_con_tablero": [
+        "baja",
+        "media",
+        "alta"
+      ],
+      "camaras_con_pose": [
+        "baja",
+        "media",
+        "alta"
+      ],
+      "pose": {
+        "rig": true,
+        "camaras_usadas": [
+          "media",
+          "alta"
+        ],
+        "calidad": "buena",
+        "max_diff_deg": 0.18539349174284347,
+        "max_diff_mm": 0.6527849970589882
+      }
+    },
+    {
+      "indice": 1,
+      "objetivo_deg": 22.5,
+      "medido_deg": 20.09027048552108,
+      "duracion_s": 23.6,
+      "repeticiones": 0,
+      "movimiento_sin_resolver": false,
+      "camaras_con_tablero": [
+        "baja",
+        "media",
+        "alta"
+      ],
+      "camaras_con_pose": [
+        "baja",
+        "media",
+        "alta"
+      ],
+      "pose": {
+        "rig": true,
+        "camaras_usadas": [
+          "media"
+        ],
+        "calidad": "buena",
+        "max_diff_deg": 1.2074182697257333e-06,
+        "max_diff_mm": 7.460698725481052e-14
+      }
+    },
+    {
+      "indice": 2,
+      "objetivo_deg": 45.0,
+      "medido_deg": 42.80833733826649,
+      "duracion_s": 23.4,
+      "repeticiones": 0,
+      "movimiento_sin_resolver": false,
+      "camaras_con_tablero": [
+        "baja",
+        "media",
+        "alta"
+      ],
+      "camaras_con_pose": [
+        "baja",
+        "media",
+        "alta"
+      ],
+      "pose": {
+        "rig": true,
+        "camaras_usadas": [
+          "baja",
+          "media",
+          "alta"
+        ],
+        "calidad": "baja",
+        "max_diff_deg": 0.0,
+        "max_diff_mm": 0.0
+      }
+    },
+    {
+      "indice": 3,
+      "objetivo_deg": 67.5,
+      "medido_deg": 67.73611199371109,
+      "duracion_s": 23.6,
+      "repeticiones": 0,
+      "movimiento_sin_resolver": false,
+      "camaras_con_tablero": [
+        "baja",
+        "media",
+        "alta"
+      ],
+      "camaras_con_pose": [
+        "baja",
+        "media",
+        "alta"
+      ],
+      "pose": {
+        "rig": true,
+        "camaras_usadas": [
+          "media",
+          "alta"
+        ],
+        "calidad": "buena",
+        "max_diff_deg": 0.43548963927249335,
+        "max_diff_mm": 0.6910452758210919
+      }
+    },
+    {
+      "indice": 4,
+      "objetivo_deg": 90.0,
+      "medido_deg": 88.7639498899,
+      "duracion_s": 23.9,
+      "repeticiones": 0,
+      "movimiento_sin_resolver": false,
+      "camaras_con_tablero": [
+        "baja",
+        "media",
+        "alta"
+      ],
+      "camaras_con_pose": [
+        "baja",
+        "media",
+        "alta"
+      ],
+      "pose": {
+        "rig": true,
+        "camaras_usadas": [
+          "baja",
+          "media",
+          "alta"
+        ],
+        "calidad": "buena",
+        "max_diff_deg": 0.19169395083008883,
+        "max_diff_mm": 0.6760706851822232
+      }
+    },
+    {
+      "indice": 5,
+      "objetivo_deg": 112.5,
+      "medido_deg": 114.23097636799756,
+      "duracion_s": 23.8,
+      "repeticiones": 0,
+      "movimiento_sin_resolver": false,
+      "camaras_con_tablero": [
+        "baja",
+        "media",
+        "alta"
+      ],
+      "camaras_con_pose": [
+        "baja",
+        "media",
+        "alta"
+      ],
+      "pose": {
+        "rig": true,
+        "camaras_usadas": [
+          "media",
+          "alta"
+        ],
+        "calidad": "buena",
+        "max_diff_deg": 0.16354731273583242,
+        "max_diff_mm": 0.35662059643781363
+      }
+    },
+    {
+      "indice": 6,
+      "objetivo_deg": 135.0,
+      "medido_deg": 135.89262194675982,
+      "duracion_s": 25.6,
+      "repeticiones": 0,
+      "movimiento_sin_resolver": false,
+      "camaras_con_tablero": [
+        "baja",
+        "media",
+        "alta"
+      ],
+      "camaras_con_pose": [
+        "baja",
+        "media",
+        "alta"
+      ],
+      "pose": {
+        "rig": true,
+        "camaras_usadas": [
+          "media",
+          "alta"
+        ],
+        "calidad": "buena",
+        "max_diff_deg": 0.1463525822765881,
+        "max_diff_mm": 0.2829247699382261
+      }
+    },
+    {
+      "indice": 7,
+      "objetivo_deg": 157.5,
+      "medido_deg": 157.17758734899272,
+      "duracion_s": 26.8,
+      "repeticiones": 0,
+      "movimiento_sin_resolver": false,
+      "camaras_con_tablero": [
+        "baja",
+        "media",
+        "alta"
+      ],
+      "camaras_con_pose": [
+        "baja",
+        "media",
+        "alta"
+      ],
+      "pose": {
+        "rig": true,
+        "camaras_usadas": [
+          "baja",
+          "alta"
+        ],
+        "calidad": "buena",
+        "max_diff_deg": 0.2842058637664047,
+        "max_diff_mm": 0.7643686819737909
+      }
+    },
+    {
+      "indice": 8,
+      "objetivo_deg": 180.0,
+      "medido_deg": 180.06192003105943,
+      "duracion_s": 26.2,
+      "repeticiones": 0,
+      "movimiento_sin_resolver": false,
+      "camaras_con_tablero": [
+        "baja",
+        "media",
+        "alta"
+      ],
+      "camaras_con_pose": [
+        "baja",
+        "media",
+        "alta"
+      ],
+      "pose": {
+        "rig": true,
+        "camaras_usadas": [
+          "baja",
+          "media",
+          "alta"
+        ],
+        "calidad": "buena",
+        "max_diff_deg": 0.30894150990338415,
+        "max_diff_mm": 1.3643647609691476
+      }
+    },
+    {
+      "indice": 9,
+      "objetivo_deg": 202.5,
+      "medido_deg": 204.9290170750023,
+      "duracion_s": 27.1,
+      "repeticiones": 0,
+      "movimiento_sin_resolver": false,
+      "camaras_con_tablero": [
+        "baja",
+        "media",
+        "alta"
+      ],
+      "camaras_con_pose": [
+        "baja",
+        "media",
+        "alta"
+      ],
+      "pose": {
+        "rig": true,
+        "camaras_usadas": [
+          "media"
+        ],
+        "calidad": "buena",
+        "max_diff_deg": 1.2074182697257333e-06,
+        "max_diff_mm": 1.1368683772161603e-13
+      }
+    },
+    {
+      "indice": 10,
+      "objetivo_deg": 225.0,
+      "medido_deg": 224.13437655108606,
+      "duracion_s": 26.1,
+      "repeticiones": 0,
+      "movimiento_sin_resolver": false,
+      "camaras_con_tablero": [
+        "baja",
+        "media",
+        "alta"
+      ],
+      "camaras_con_pose": [
+        "baja",
+        "media",
+        "alta"
+      ],
+      "pose": {
+        "rig": true,
+        "camaras_usadas": [
+          "baja",
+          "media",
+          "alta"
+        ],
+        "calidad": "baja",
+        "max_diff_deg": 0.0,
+        "max_diff_mm": 0.0
+      }
+    },
+    {
+      "indice": 11,
+      "objetivo_deg": 247.5,
+      "medido_deg": 247.24099996125273,
+      "duracion_s": 24.9,
+      "repeticiones": 0,
+      "movimiento_sin_resolver": false,
+      "camaras_con_tablero": [
+        "baja",
+        "media",
+        "alta"
+      ],
+      "camaras_con_pose": [
+        "baja",
+        "media",
+        "alta"
+      ],
+      "pose": {
+        "rig": true,
+        "camaras_usadas": [
+          "baja",
+          "alta"
+        ],
+        "calidad": "buena",
+        "max_diff_deg": 0.21696176778605916,
+        "max_diff_mm": 0.5525448150846056
+      }
+    },
+    {
+      "indice": 12,
+      "objetivo_deg": 270.0,
+      "medido_deg": 270.453006000721,
+      "duracion_s": 24.1,
+      "repeticiones": 0,
+      "movimiento_sin_resolver": false,
+      "camaras_con_tablero": [
+        "baja",
+        "media",
+        "alta"
+      ],
+      "camaras_con_pose": [
+        "baja",
+        "media",
+        "alta"
+      ],
+      "pose": {
+        "rig": true,
+        "camaras_usadas": [
+          "media",
+          "alta"
+        ],
+        "calidad": "buena",
+        "max_diff_deg": 0.21248798577270916,
+        "max_diff_mm": 0.5346651015922769
+      }
+    },
+    {
+      "indice": 13,
+      "objetivo_deg": 292.5,
+      "medido_deg": 292.17494357485043,
+      "duracion_s": 24.0,
+      "repeticiones": 0,
+      "movimiento_sin_resolver": false,
+      "camaras_con_tablero": [
+        "baja",
+        "media",
+        "alta"
+      ],
+      "camaras_con_pose": [
+        "baja",
+        "media",
+        "alta"
+      ],
+      "pose": {
+        "rig": true,
+        "camaras_usadas": [
+          "media",
+          "alta"
+        ],
+        "calidad": "buena",
+        "max_diff_deg": 0.21019485787793352,
+        "max_diff_mm": 0.8183301784666817
+      }
+    },
+    {
+      "indice": 14,
+      "objetivo_deg": 315.0,
+      "medido_deg": 315.95960893755216,
+      "duracion_s": 24.2,
+      "repeticiones": 0,
+      "movimiento_sin_resolver": false,
+      "camaras_con_tablero": [
+        "baja",
+        "media",
+        "alta"
+      ],
+      "camaras_con_pose": [
+        "baja",
+        "media",
+        "alta"
+      ],
+      "pose": {
+        "rig": true,
+        "camaras_usadas": [
+          "alta"
+        ],
+        "calidad": "buena",
+        "max_diff_deg": 0.0,
+        "max_diff_mm": 3.8683815514605724e-13
+      }
+    },
+    {
+      "indice": 15,
+      "objetivo_deg": 337.5,
+      "medido_deg": 337.798574115334,
+      "duracion_s": 24.8,
+      "repeticiones": 0,
+      "movimiento_sin_resolver": false,
+      "camaras_con_tablero": [
+        "baja",
+        "media",
+        "alta"
+      ],
+      "camaras_con_pose": [
+        "baja",
+        "media",
+        "alta"
+      ],
+      "pose": {
+        "rig": true,
+        "camaras_usadas": [
+          "baja",
+          "media",
+          "alta"
+        ],
+        "calidad": "buena",
+        "max_diff_deg": 0.38777042926847316,
+        "max_diff_mm": 0.7884602243887252
+      }
+    }
+  ],
+  "duracion_total_s": 595.1,
+  "fin": "2026-11-17T15:49:08.902502"
+}

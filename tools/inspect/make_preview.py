@@ -1,6 +1,6 @@
 """Genera una vista previa reducida (JPG, <= 640 px de ancho) para poder VER una imagen.
 
-    tools/inspect/run.sh make_preview.py Captura_real/bunnny/alta/stop_00/color.png
+    tools/inspect/run.sh make_preview.py Captura_real/bunny_x200/alta/stop_00/color.png
     tools/inspect/run.sh make_preview.py real.png sintetica.png --name comp_alta_00   # lado a lado
 
 Varias entradas se ponen lado a lado (cada una escalada a la misma altura) y el conjunto se

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Python (y ns-*) del entorno pixi de nerfstudio, con la raiz del repo en el path.
-#   tools/ns_py.sh -m recon.profundidad Reconstrucciones/real/bunnny
+#   tools/ns_py.sh -m recon.profundidad Reconstrucciones/real/bunny_x200
 #   tools/ns_py.sh --ns ns-train nerfacto ...          (ejecuta un comando del entorno)
 # NERFSTUDIO_DIR sobrescribe configs/recon.yaml entornos.nerfstudio_dir.
 set -euo pipefail

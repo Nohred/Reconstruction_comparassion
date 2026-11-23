@@ -1,6 +1,6 @@
 """Triangula puntos 3D con COLMAP manteniendo FIJAS las poses e intrinsecos exportados.
 
-    tools/cv_py.sh -m eval.triangulate Reconstrucciones/real/bunnny/entrada
+    tools/cv_py.sh -m eval.triangulate Reconstrucciones/real/bunny_x200/entrada
 
 Sobre la carpeta de eval/export_recon.py: feature_extractor (con la mascara ROI) ->
 intrinsecos exactos escritos en la base de datos -> matcher -> point_triangulator con

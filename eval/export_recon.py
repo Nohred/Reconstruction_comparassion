@@ -1,7 +1,7 @@
 """Exporta una captura (real o sintetica, mismo formato) para reconstruccion con poses conocidas.
 
-    tools/cv_py.sh -m eval.export_recon Captura_real/bunnny --check
-    tools/cv_py.sh -m eval.export_recon Captura_sintetica/bunnny --check
+    tools/cv_py.sh -m eval.export_recon Captura_real/bunny_x200 --check
+    tools/cv_py.sh -m eval.export_recon Captura_sintetica/bunny_x200 --check
 
 Salida en Reconstrucciones/<real|sintetica>/<captura>/entrada/ (la fuente se deduce de si existe
 ground_truth.json). Es la MISMA para ambas fuentes, asi las tecnicas se comparan con igual entrada:
@@ -183,10 +183,13 @@ def check(out_dir, rcfg, cap):
 
 
 def roi_for(roi_cfg, root, fuente):
-    """ROI de config; en la sintetica la altura crece si el objeto GT es mas alto (p. ej. caesar, 200 mm)."""
+    """ROI de config; la altura crece si el objeto GT es mas alto (p. ej. caesar, 200 mm). En la real se
+    usa el GT de su gemelo (Captura_sintetica/<mismo nombre>) si ya existe."""
     roi = {k: v for k, v in roi_cfg.items() if k != "altura_margen_mm"}
-    if fuente == "sintetica":
-        gt = json.loads((root / load_config("twin")["gt_file"]).read_text("utf-8"))
+    src = root if fuente == "sintetica" else repo_path(load_config("common")["paths"]["synthetic_root"]) / root.name
+    gt_file = src / load_config("twin")["gt_file"]
+    if gt_file.exists():
+        gt = json.loads(gt_file.read_text("utf-8"))
         h = (gt.get("objeto") or {}).get("extension_mm", [0, 0, 0])[2]
         roi["altura_mm"] = float(max(roi["altura_mm"], h + roi_cfg["altura_margen_mm"]))
     return roi

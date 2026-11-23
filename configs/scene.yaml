@@ -56,3 +56,10 @@ materials:
   pla_gris:
     color: [0.5, 0.5, 0.5]
     roughness: 0.55
+  # estimados de las fotos reales (2026-11-17), relativos al pla_beige de la pieza 'artefacto'
+  pla_glow:                        # PLA fotoluminiscente (cesar): blanco verdoso
+    color: [0.71, 0.74, 0.60]
+    roughness: 0.45
+  petg_gris:                       # PETG gris oscuro (P1), algo mas brillante que el PLA
+    color: [0.32, 0.32, 0.29]
+    roughness: 0.35

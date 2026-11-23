@@ -1,6 +1,6 @@
 """Etapa 2 del gemelo: arma la captura sintetica con EXACTAMENTE el formato de la real.
 
-    tools/cv_py.sh -m sim.write_capture Captura_sintetica/bunnny
+    tools/cv_py.sh -m sim.write_capture Captura_sintetica/bunny_x200
 
 Corre con el OpenCV de la captura (tools/cv_py.sh): la deteccion del ChArUco, la fusion con el
 rig y la escritura de calib.json / stop_XX/{color.png, depth_XX.png, meta.json} las hace la

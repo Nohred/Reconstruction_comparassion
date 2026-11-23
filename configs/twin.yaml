@@ -5,14 +5,14 @@
 objeto: null
 modo: replay                 # replay: poses reales de la captura | aleatorio: plantilla + variabilidad
 sufijo_modo: {replay: "", aleatorio: ""}
-plantilla: Captura_real/bunnny   # camaras, intrinsecos, rig y paradas de referencia (modo aleatorio)
+plantilla: Captura_real/bunny_x200   # camaras, intrinsecos, rig y paradas de referencia (modo aleatorio)
 
 # Modo aleatorio: variabilidad de captura alrededor de la plantilla. Semilla por defecto = hash
 # estable del nombre de la captura (cada objeto tiene su propia variacion, reproducible).
 aleatorio:
   semilla: null
   giro:                          # por parada: k*360/N + N(0, sigma) recortado a +-max
-    sigma_deg: 1.22              # medido en Captura_real/bunnny (medido - objetivo, session.json)
+    sigma_deg: 1.22              # medido en Captura_real/bunny_x200 (medido - objetivo, session.json)
     max_deg: 3.0                 # = tol de capture_turntable.py
   camaras:                       # una vez por captura (rig re-montado). SUPUESTOS, no medidos.
     azimut_sigma_deg: 2.0        # alrededor del eje de la base
@@ -35,7 +35,7 @@ anotadores:
   profundidad: [distance_to_image_plane, instance_id_segmentation]
 
 # Profundidad ruidosa (depth_XX.png). Numero de cuadros = session.json parametros.cuadros real.
-# PROVISIONAL (fase 6). Medido en Captura_real/bunnny (std temporal mediana por pixel, rango
+# PROVISIONAL (fase 6). Medido en Captura_real/bunny_x200 (std temporal mediana por pixel, rango
 # dominante de cada camara; ~6 % de pixeles validos cae a 0 en cada cuadro).
 ruido_profundidad:
   activo: true
@@ -55,6 +55,8 @@ validacion:
   subpix_win: 3
   max_render_bias_px: 0.1          # |mediana| por eje (robusta a esquinas junto a la sombra)
   max_render_median_px: 0.25       # mediana de |error|
+  max_fraccion_vistas_falla: 0.1   # la captura falla si mas vistas que esto superan los limites de
+                                   # arriba (o si la mediana global de todas supera max_render_median_px)
   # INFORMATIVO: el detector real (OpenCV 4.10) tiene un sesgo propio de ~+0.5 px (medido en
   # datos reales: 4.14 - 4.10 = -0.43 px), que da ~0.4 mm de error de pose en real y sintetico.
   detector_bias_px: 0.5
